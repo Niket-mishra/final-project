@@ -1,0 +1,27 @@
+<div class="card shadow-sm p-4 text-center">
+  @if (isLoading) {
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2">Loading performance...</p>
+  } @else {
+    <h5 class="fw-bold mb-3">📈 Performance Overview</h5>
+
+    <p><strong>Designation:</strong> {{ officer.designation }}</p>
+    <p><strong>City:</strong> {{ officer.city }}</p>
+
+    <div class="mb-3">
+      <strong>Current Workload:</strong>
+      <span class="badge bg-secondary">{{ officer.currentWorkload }} / {{ officer.maxLoansAssigned }}</span>
+    </div>
+
+    <div class="mb-3">
+      <strong>Rating:</strong>
+      <span class="badge bg-{{ getRatingColor() }}">{{ officer.performanceRating ?? 'N/A' }}</span>
+    </div>
+
+    <div>
+      <button class="btn btn-outline-primary btn-sm">View Audit Log</button>
+      <button class="btn btn-outline-success btn-sm ms-2">Send Feedback</button>
+    </div>
+    <app-workload-meter-component [officer]="officer"></app-workload-meter-component>
+  }
+</div>

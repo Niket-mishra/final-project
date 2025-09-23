@@ -1,0 +1,103 @@
+<div class="container py-4">
+  <h3 class="text-center fw-bold mb-4">🏠 Welcome to Your Loan Dashboard</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading your data...</p>
+    </div>
+  } @else {
+
+    <!-- 🔍 Application Summary Cards -->
+    <section class="mb-5">
+      <h5 class="mb-3">📊 Application Overview</h5>
+      <div class="row text-center">
+        <div class="col-md-3" *ngFor="let stat of summaryStats">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold">{{ stat.label }}</h6>
+              <p class="display-6 text-primary">{{ stat.value }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 📋 Recent Applications Timeline -->
+    <section class="mb-5">
+      <h5 class="mb-3">🕒 Recent Applications</h5>
+      @if (recentApplications.length === 0) {
+        <p class="text-muted">No recent activity.</p>
+      } @else {
+        <ul class="list-group">
+          @for (app of recentApplications; track app.applicationId) {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>#{{ app.applicationId }}</strong> — ₹{{ app.requestedAmount }}
+                <br />
+                <small class="text-muted">{{ app.applicationDate | date:'mediumDate' }}</small>
+              </div>
+              <span class="badge bg-secondary">{{ app.status }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- 📁 Uploaded Documents -->
+    <section class="mb-5">
+      <h5 class="mb-3">📁 Uploaded Documents</h5>
+      @if (documents.length === 0) {
+        <p class="text-muted">No documents uploaded.</p>
+      } @else {
+        <ul class="list-group">
+          @for (doc of documents; track doc.documentId) {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              {{ doc.documentType }} — {{ doc.fileName }}
+              <span class="badge bg-{{ doc.verificationStatus === 'Approved' ? 'success' : 'warning' }}">
+                {{ doc.verificationStatus }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- ❓ Customer Queries -->
+    <section class="mb-5">
+      <h5 class="mb-3">❓ Your Queries</h5>
+      @if (queries.length === 0) {
+        <p class="text-muted">No queries submitted.</p>
+      } @else {
+        <ul class="list-group">
+          @for (q of queries; track q.queryId) {
+            <li class="list-group-item">
+              <strong>{{ q.querySubject }}</strong> — <span class="text-muted">{{ q.queryStatus }}</span>
+              <br />
+              <small class="text-muted">Response: {{ q.officerResponse || 'Pending' }}</small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- 💸 Repayment History -->
+    <section>
+      <h5 class="mb-3">💸 Repayment History</h5>
+      @if (repayments.length === 0) {
+        <p class="text-muted">No repayments made yet.</p>
+      } @else {
+        <ul class="list-group">
+          @for (r of repayments; track r.repaymentId) {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              EMI #{{ r.emiNumber }} — ₹{{ r.amount }} on {{ r.paymentDate | date:'mediumDate' }}
+              <span class="badge bg-{{ r.paymentStatus === 'Completed' ? 'success' : 'danger' }}">
+                {{ r.paymentStatus }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

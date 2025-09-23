@@ -1,0 +1,40 @@
+.card {
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 0.75rem rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-weight: 600;
+  color: #333;
+}
+
+input, textarea {
+  font-size: 14px;
+}
+
+button {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.badge {
+  font-size: 13px;
+  padding: 0.4em 0.6em;
+}
+
+.modal-content {
+  border-radius: 10px;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.modal-body input,
+.modal-body textarea {
+  font-size: 14px;
+}

@@ -1,0 +1,21 @@
+<div class="container py-4">
+  <h4 class="mb-3 fw-bold">📁 Upload Your Documents</h4>
+
+  <div class="mb-3">
+    <label>Select Document Type</label>
+    <select [(ngModel)]="documentType" class="form-select">
+      <option value="PAN">PAN</option>
+      <option value="Aadhaar">Aadhaar</option>
+      <option value="Passport">Passport</option>
+      <option value="DrivingLicense">Driving License</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <input type="file" multiple (change)="onFileSelect($event)" class="form-control" />
+  </div>
+
+  <button class="btn btn-success w-100" (click)="uploadDocuments()" [disabled]="isUploading || !selectedFiles.length">
+    {{ isUploading ? 'Uploading...' : 'Upload Documents' }}
+  </button>
+</div>

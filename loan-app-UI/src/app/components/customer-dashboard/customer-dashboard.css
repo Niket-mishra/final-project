@@ -1,0 +1,9 @@
+.list-group-item {
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 0.3em 0.6em;
+}

@@ -1,0 +1,21 @@
+<div class="card p-3 shadow-sm text-center">
+  <h6 class="fw-bold mb-2">📊 Workload Meter</h6>
+  <p class="mb-1"><strong>{{ officer.designation }}</strong> in {{ officer.city }}</p>
+
+  <div class="progress" style="height: 20px;">
+    <div
+      class="progress-bar bg-{{ getMeterColor() }}"
+      role="progressbar"
+      [style.width.%]="workloadPercentage"
+      aria-valuenow="{{ workloadPercentage }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      {{ workloadPercentage }}%
+    </div>
+  </div>
+
+  <small class="text-muted mt-2 d-block">
+    {{ officer.currentWorkload }} of {{ officer.maxLoansAssigned }} loans assigned
+  </small>
+</div>

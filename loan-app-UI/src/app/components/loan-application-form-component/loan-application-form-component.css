@@ -1,0 +1,14 @@
+form {
+  max-width: 600px;
+  margin: auto;
+  border-radius: 12px;
+  background-color: #fff;
+}
+
+label {
+  font-weight: 600;
+}
+
+button {
+  font-weight: 600;
+}

@@ -1,0 +1,9 @@
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.badge {
+  font-size: 13px;
+  padding: 0.4em 0.7em;
+}

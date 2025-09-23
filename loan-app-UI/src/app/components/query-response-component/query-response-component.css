@@ -1,0 +1,12 @@
+.list-group-item {
+  cursor: pointer;
+}
+
+.list-group-item.active {
+  background-color: #e9f5ff;
+  border-left: 4px solid #0d6efd;
+}
+
+textarea {
+  resize: vertical;
+}

@@ -1,0 +1,27 @@
+<div class="container py-4">
+  <h2 class="mb-4">All Customers</h2>
+
+  @if (error) {
+    <div class="alert alert-danger">{{ error }}</div>
+  }
+
+  <div class="row g-3">
+    @for (customer of customers; track customer.customerId) {
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">{{ customer.firstName }} {{ customer.lastName }}</h5>
+            <p><strong>City:</strong> {{ customer.city }}</p>
+            <p><strong>Occupation:</strong> {{ customer.occupation }}</p>
+            <p><strong>Status:</strong> {{ customer.verificationStatus }}</p>
+            <button class="btn btn-sm btn-outline-primary" (click)="viewProfile(customer)">View Profile</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (selectedCustomer) {
+    <app-customer-profile [customer]="selectedCustomer" (close)="closeProfile()"></app-customer-profile>
+  }
+</div>

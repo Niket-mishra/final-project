@@ -1,0 +1,38 @@
+<div class="container py-4">
+  <h3 class="mb-4 text-center fw-bold">📋 Apply for a Loan</h3>
+
+  <form [formGroup]="loanForm" (ngSubmit)="submitApplication()" class="card p-4 shadow-sm">
+    <div class="mb-3">
+      <label>Loan Scheme</label>
+      <select formControlName="schemeId" class="form-select">
+        <option *ngFor="let scheme of schemes" [value]="scheme.schemeId">
+          {{ scheme.schemeName }} (₹{{ scheme.minAmount }}–₹{{ scheme.maxAmount }})
+        </option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label>Requested Amount</label>
+      <input type="number" formControlName="requestedAmount" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+      <label>Purpose of Loan</label>
+      <textarea formControlName="purposeOfLoan" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label>Employment Details</label>
+      <input type="text" formControlName="employmentDetails" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+      <label>Submitted Documents</label>
+      <input type="text" formControlName="submittedDocuments" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100" [disabled]="loanForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
+    </button>
+  </form>
+</div>

@@ -1,0 +1,37 @@
+<div class="container py-4">
+  <h4 class="text-center fw-bold mb-4">📉 NPA Monitor</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading NPA data...</p>
+    </div>
+  } @else {
+    @if (npas.length === 0) {
+      <p class="text-muted text-center">No NPAs recorded.</p>
+    } @else {
+      <table class="table table-bordered table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Loan ID</th>
+            <th>Days Overdue</th>
+            <th>Overdue Amount</th>
+            <th>NPA Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (npa of npas; track npa.npaId) {
+            <tr>
+              <td>{{ npa.loanId }}</td>
+              <td>{{ npa.daysOverdue }}</td>
+              <td>₹{{ npa.overdueAmount }}</td>
+              <td>{{ npa.npaDate | date:'mediumDate' }}</td>
+              <td><span class="badge bg-{{ getStatusColor(npa.npaStatus) }}">{{ npa.npaStatus }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

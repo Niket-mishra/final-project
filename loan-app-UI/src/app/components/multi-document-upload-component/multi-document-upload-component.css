@@ -1,0 +1,12 @@
+.container {
+  max-width: 600px;
+  margin: auto;
+}
+
+select, input[type="file"] {
+  font-weight: 500;
+}
+
+button {
+  font-weight: 600;
+}

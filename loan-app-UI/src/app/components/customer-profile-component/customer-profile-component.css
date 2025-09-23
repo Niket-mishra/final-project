@@ -1,0 +1,16 @@
+.card {
+  border-radius: 12px;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.modal-content {
+  border-radius: 10px;
+}
+
+.badge {
+  font-size: 13px;
+  padding: 0.4em 0.6em;
+}

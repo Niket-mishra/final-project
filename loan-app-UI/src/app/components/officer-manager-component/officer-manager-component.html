@@ -1,0 +1,54 @@
+<div class="container py-4">
+  <h4 class="text-center fw-bold mb-4">🧑‍💼 Manage Loan Officers</h4>
+
+  <form [formGroup]="officerForm" (ngSubmit)="submitOfficer()" class="card p-4 shadow-sm mb-5">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label>City</label>
+        <input type="text" formControlName="city" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label>Designation</label>
+        <input type="text" formControlName="designation" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label>Specialization</label>
+        <input type="text" formControlName="specialization" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label>Max Loans Assigned</label>
+        <input type="number" formControlName="maxLoansAssigned" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label>Status</label>
+        <select formControlName="isActive" class="form-select">
+          <option [value]="true">Active</option>
+          <option [value]="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-4 w-100">
+      {{ isEditing ? 'Update Officer' : 'Add Officer' }}
+    </button>
+  </form>
+
+  <h5 class="mb-3">📦 Existing Officers</h5>
+  <ul class="list-group">
+    @for (officer of officers; track officer.officerId) {
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ officer.designation }}</strong> — {{ officer.city }}
+          <br />
+          <small class="text-muted">Specialization: {{ officer.specialization }}</small>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-outline-primary me-2" (click)="editOfficer(officer)">Edit</button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="toggleOfficerStatus(officer)">
+            {{ officer.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+</div>
