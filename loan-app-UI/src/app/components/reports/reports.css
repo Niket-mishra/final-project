@@ -1,8 +1,27 @@
-.list-group-item {
-  border-radius: 8px;
-  margin-bottom: 6px;
+.report-container {
+  max-width: 960px;
+  margin: auto;
 }
 
-button {
-  font-weight: 500;
+.report-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 1.25rem;
+}
+
+.btn-outline-dark {
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.btn-outline-dark:hover {
+  background-color: #212529;
+  color: #fff;
 }

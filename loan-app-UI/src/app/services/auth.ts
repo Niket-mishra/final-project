@@ -34,14 +34,39 @@ export class Auth {
   // 🔐 Login
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap((res) => this.storeToken(res))
+      tap(res => {
+        this.storeToken(res);
+        this.toast('Login successful');
+        this.router.navigate([this.getDashboardRoute()]);
+      })
+    );
+  }
+
+  // 📝 Register
+  register(payload: {
+    name: string;
+    email: string;
+    password: string;
+    role?: 'Admin' | 'LoanOfficer' | 'Customer';
+  }): Observable<AuthResponse> {
+    const finalPayload = {
+      ...payload,
+      role: payload.role ?? 'Customer'
+    };
+
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, finalPayload).pipe(
+      tap(res => {
+        this.storeToken(res);
+        this.toast('Registration successful');
+        this.router.navigate([this.getDashboardRoute()]);
+      })
     );
   }
 
   // 🔄 Refresh
   refreshToken(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}).pipe(
-      tap((res) => {
+      tap(res => {
         this.storeToken(res);
         this.toast('Session refreshed');
       })
@@ -52,7 +77,7 @@ export class Auth {
   logout(): void {
     localStorage.clear();
     this.toast('Logged out', 'success');
-    this.router.navigate(['/login']);
+    this.router.navigate(['/auth/login']);
   }
 
   // 🧠 Token Storage
@@ -63,7 +88,7 @@ export class Auth {
     localStorage.setItem('user_id', res.userId.toString());
   }
 
-  // 🔍 Token Access
+  // 🔍 Accessors
   getToken(): string | null {
     return localStorage.getItem('auth_token');
   }
@@ -95,6 +120,17 @@ export class Auth {
     return this.getDecodedToken()?.name ?? 'User';
   }
 
+  getCurrentUser(): { userId: number; role: string; email: string; name?: string } | null {
+    const token = this.getDecodedToken();
+    if (!token) return null;
+    return {
+      userId: token.userId,
+      role: token.role,
+      email: token.email,
+      name: token.name
+    };
+  }
+
   // ⏳ Expiry Check
   isTokenExpired(token: string): boolean {
     try {
@@ -124,36 +160,22 @@ export class Auth {
   }
 
   // 🎯 Role-Based Routing
-  redirectByRole(): void {
+  getDashboardRoute(): string {
     const role = this.getUserRole();
     switch (role) {
-      case 'Admin':
-        this.router.navigate(['/admin/dashboard']);
-        break;
-      case 'LoanOfficer':
-        this.router.navigate(['/officer/dashboard']);
-        break;
-      case 'Customer':
-        this.router.navigate(['/customer/home']);
-        break;
-      default:
-        this.router.navigate(['/login']);
+      case 'Admin': return '/admin/dashboard';
+      case 'LoanOfficer': return '/officer/dashboard';
+      case 'Customer': return '/customer/dashboard';
+      default: return '/auth/login';
     }
+  }
+
+  redirectByRole(): void {
+    this.router.navigate([this.getDashboardRoute()]);
   }
 
   // 🎨 Toast Feedback
   toast(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastr[type](message, 'Auth');
   }
-
-  getCurrentUser(): { userId: number; role: string; email: string; name?: string } | null {
-  const token = this.getDecodedToken();
-  if (!token) return null;
-  return {
-    userId: token.userId,
-    role: token.role,
-    email: token.email,
-    name: token.name
-  };
-}
 }

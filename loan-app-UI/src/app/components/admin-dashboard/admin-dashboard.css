@@ -1,0 +1,14 @@
+.admin-dashboard {
+  max-width: 900px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.stat-card {
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: scale(1.02);
+  background-color: #f8f9fa;
+}

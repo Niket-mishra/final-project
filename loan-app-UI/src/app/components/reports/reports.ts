@@ -1,15 +1,18 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ToastService } from '../../services/toast-service';
 import { ReportService } from '../../services/report-service';
+import { Report } from '../../models/report';
 
 @Component({
   selector: 'app-reports',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './reports.html',
-  styleUrl: './reports.css'
+  styleUrls: ['./reports.css']
 })
-export class Reports {
-   reports: Report[] = [];
+export class Reports implements OnInit {
+  reports: Report[] = [];
   isLoading = true;
 
   private reportService = inject(ReportService);
@@ -21,7 +24,7 @@ export class Reports {
 
   loadReports(): void {
     this.reportService.getAllReports().subscribe({
-      next: (res) => {
+      next: (res: Report[]) => {
         this.reports = res;
         this.isLoading = false;
       },
@@ -33,6 +36,10 @@ export class Reports {
   }
 
   downloadReport(report: Report): void {
-    window.open(report.url, '_blank');
+    if (!report.filePath) {
+      this.toast.error('Report file path is missing');
+      return;
+    }
+    window.open(report.filePath, '_blank');
   }
 }

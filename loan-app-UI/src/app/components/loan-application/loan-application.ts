@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LoanApplicationService } from '../../services/loan-application-service';
-import { LoanApplication, Status } from '../../models/loan-application';
+import { LoanApplication, ApplicationStatus } from '../../models/loan-application';
 import { ModalWrapperComponent } from '../../components/modal-wrapper-component/modal-wrapper-component';
 
 @Component({
@@ -17,7 +17,7 @@ export class LoanApplications implements OnInit {
   isLoading = false;
   error = '';
   success = '';
-  Status = Status;
+  Status = ApplicationStatus;
 
   showEditModal = false;
   editApplication: LoanApplication | null = null;
@@ -44,7 +44,7 @@ export class LoanApplications implements OnInit {
     });
   }
 
-  updateStatus(application: LoanApplication, status: Status): void {
+  updateStatus(application: LoanApplication, status: ApplicationStatus): void {
     this.service.updateStatus(application.applicationId, status).subscribe({
       next: (updatedApp) => {
         const index = this.applications.findIndex(a => a.applicationId === updatedApp.applicationId);
@@ -96,12 +96,12 @@ export class LoanApplications implements OnInit {
     }).format(amount);
   }
 
-  getStatusColor(status: Status): string {
+  getStatusColor(status: ApplicationStatus): string {
     switch (status) {
-      case Status.Approved: return 'success';
-      case Status.Rejected: return 'danger';
-      case Status.Pending: return 'warning';
-      case Status.Disbursed: return 'primary';
+      case ApplicationStatus.Approved: return 'success';
+      case ApplicationStatus.Rejected: return 'danger';
+      case ApplicationStatus.Pending: return 'warning';
+      case ApplicationStatus.Disbursed: return 'primary';
       default: return 'secondary';
     }
   }

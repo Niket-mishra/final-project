@@ -1,1 +1,23 @@
-<p>profile works!</p>
+<div class="profile-container">
+  <h4 class="text-center fw-bold mb-4">👤 Profile</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading profile...</p>
+    </div>
+  } @else {
+    @if (!user) {
+      <p class="text-muted text-center">No profile data available.</p>
+    } @else {
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ user.username }}</h5>
+          <p><strong>Email:</strong> {{ user.email }}</p>
+          <p><strong>Role:</strong> {{ user.role }}</p>
+          <p><strong>Joined:</strong> {{ user.createdAt | date:'mediumDate' }}</p>
+        </div>
+      </div>
+    }
+  }
+</div>

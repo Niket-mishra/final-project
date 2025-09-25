@@ -1,1 +1,25 @@
-<p>application-details works!</p>
+<div class="details-container">
+  <h4 class="text-center fw-bold mb-4">📄 Application Details</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading details...</p>
+    </div>
+  } @else {
+    @if (!application) {
+      <p class="text-muted text-center">No details available.</p>
+    } @else {
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Application #{{ application.applicationId }}</h5>
+          <p><strong>Status:</strong> <span class="badge bg-secondary">{{ application.status }}</span></p>
+          <p><strong>Requested Amount:</strong> ₹{{ application.requestedAmount }}</p>
+          <p><strong>Scheme:</strong> {{ application.loanScheme?.schemeName || 'N/A' }}</p>
+          <p><strong>Submitted On:</strong> {{ application.applicationDate | date:'mediumDate' }}</p>
+          <p><strong>Remarks:</strong> {{ application.remarks || 'N/A' }}</p>
+        </div>
+      </div>
+    }
+  }
+</div>

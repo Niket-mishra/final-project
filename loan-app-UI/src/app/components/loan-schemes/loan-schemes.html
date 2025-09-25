@@ -1,1 +1,36 @@
-<p>loan-schemes works!</p>
+<div class="scheme-container">
+  <h4 class="text-center fw-bold mb-4">🏦 Available Loan Schemes</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading schemes...</p>
+    </div>
+  } @else {
+    @if (schemes.length === 0) {
+      <p class="text-muted text-center">No schemes available at the moment.</p>
+    } @else {
+      <div class="row">
+        @for (scheme of schemes; track scheme.schemeId) {
+          <div class="col-md-6 mb-3">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">{{ scheme.schemeName }}</h5>
+                <p><strong>Interest Rate:</strong> {{ scheme.interestRate }}%</p>
+                <p><strong>Amount Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</p>
+                <p><strong>Tenure:</strong> {{ scheme.tenureMonths }} months</p>
+                <p class="text-muted">{{ scheme.eligibilityCriteria }}</p>
+                <p>
+                    <strong>Status:</strong>
+                     <span class="badge" [ngClass]="scheme.isActive ? 'bg-success' : 'bg-secondary'">
+                       {{ scheme.isActive ? 'Active' : 'Inactive' }}
+                      </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

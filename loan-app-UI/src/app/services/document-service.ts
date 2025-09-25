@@ -18,8 +18,11 @@ export class DocumentService {
   }
   uploadDocument(payload: Partial<LoanDocument>): Observable<LoanDocument> {
   return this.http.post<LoanDocument>(this.apiUrl, payload);
-}
-getDocumentsByCustomer(customerId: number): Observable<LoanDocument[]> {
+  }
+  getDocumentsByCustomer(customerId: number): Observable<LoanDocument[]> {
   return this.http.get<LoanDocument[]>(`${this.apiUrl}/customer/${customerId}`);
-}
+  }
+  getAllDocuments(): Observable<LoanDocument[]> {
+  return this.http.get<LoanDocument[]>(`${this.apiUrl}`);
+  }
 }

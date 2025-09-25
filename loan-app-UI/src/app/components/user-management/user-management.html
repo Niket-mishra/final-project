@@ -1,1 +1,33 @@
-<p>user-management works!</p>
+<div class="user-management-container container py-5">
+  <h2 class="text-center fw-bold mb-4 animate__animated animate__fadeInDown">👥 User Management</h2>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3 text-muted">Loading users...</p>
+    </div>
+  } @else {
+    @if (users.length === 0) {
+      <p class="text-muted text-center animate__animated animate__fadeIn">No users found.</p>
+    } @else {
+      <div class="row">
+        @for (user of users; track user.userId) {
+          <div class="col-md-6 mb-4 animate__animated animate__fadeInUp">
+            <div class="card shadow-sm border-0 rounded-4 user-card">
+              <div class="card-body">
+                <h5 class="card-title fw-bold">{{ user.username }}</h5>
+                <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+                <p class="mb-1"><strong>Role:</strong> {{ user.role }}</p>
+
+                <button class="btn btn-outline-dark w-100 mt-3 rounded-3 shadow-sm"
+                        (click)="toggleRole(user)">
+                  🔄 Toggle Role
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

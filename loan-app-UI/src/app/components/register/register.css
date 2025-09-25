@@ -1,0 +1,12 @@
+.step-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d6d6d6;
+  transition: all 0.3s ease-in-out;
+}
+.step-dot.active {
+  background: #212529;
+  transform: scale(1.2);
+}

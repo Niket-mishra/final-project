@@ -1,0 +1,13 @@
+.loan-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.card {
+  border-left: 4px solid #198754;
+}
+
+.card-body p {
+  margin-bottom: 0.75rem;
+}

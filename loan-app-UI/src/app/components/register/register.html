@@ -1,1 +1,141 @@
-<p>register works!</p>
+<div class="container py-5 d-flex align-items-center justify-content-center min-vh-100 bg-gradient">
+  <div class="card shadow-lg border-0 register-card animate__animated animate__fadeInDown">
+    <div class="card-body p-5">
+      <h2 class="text-center mb-4 fw-bold">📝 Register</h2>
+      <div class="mb-4 text-center">
+  <span *ngFor="let s of [1,2,3,4]" class="step-dot" [class.active]="step === s"></span>
+</div>
+
+      <!-- Step 1: Account Info -->
+      @if (step === 1) {
+        <form [formGroup]="accountForm" (ngSubmit)="nextStep()" novalidate class="" >
+          <div class="form-floating mb-3" style="width: 328px;">
+            <input type="email" id="email" class="form-control" formControlName="email" placeholder="Email" />
+            <label for="email">Email</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input type="password" id="password" class="form-control" formControlName="password" placeholder="Password" />
+            <label for="password">Password</label>
+          </div>
+          <div class="form-floating mb-3">
+            <input type="password" id="confirmPassword" class="form-control"
+                formControlName="confirmPassword" placeholder="Confirm Password" />
+             <label for="confirmPassword">Confirm Password</label>
+         </div>
+            <div *ngIf="accountForm.errors?.['passwordMismatch'] && accountForm.touched" class="text-danger mb-3">
+                 Passwords do not match.
+            </div>
+
+
+          <div class="form-floating mb-3">
+            <input type="text" id="phoneNumber" class="form-control" formControlName="phoneNumber" placeholder="Phone Number" />
+            <label for="phoneNumber">Phone Number</label>
+          </div>
+          <button type="submit" class="btn btn-dark w-100">Next →</button>
+        </form>
+      }
+
+      <!-- Step 2: Personal Details -->
+      @if (step === 2 && role === 'Customer') {
+        <form [formGroup]="detailsForm" (ngSubmit)="nextStep()" novalidate style="width: 328px;" class="row g-2">
+          <div class="form-floating" style="width: 164px;">
+            <input type="text" id="firstName" class="form-control" formControlName="firstName" placeholder="First Name" />
+            <label for="firstName">First Name</label>
+          </div>
+          <div class="form-floating" style="width: 164px;">
+            <input type="text" id="lastName" class="form-control" formControlName="lastName" placeholder="Last Name" />
+            <label for="lastName">Last Name</label>
+          </div>
+          <div class="form-floating" style="width: 164px;">
+            <input type="date" id="dob" class="form-control" formControlName="dateOfBirth" />
+            <label for="dob">Date of Birth</label>
+          </div>
+          <div class="form-floating" style="width: 164px;">
+            <select id="gender" class="form-select" formControlName="gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <label for="gender">Gender</label>
+          </div>
+          <div class="form-floating" style="width: 164px;">
+            <input type="text" id="city" class="form-control" formControlName="city" placeholder="City" />
+            <label for="city">City</label>
+          </div>
+          <div class="form-floating" style="width: 164px;">
+            <input type="text" id="occupation" class="form-control" formControlName="occupation" placeholder="Occupation" />
+            <label for="occupation">Occupation</label>
+          </div>
+          <div class="form-floating mb-2">
+            <input type="number" id="income" class="form-control" formControlName="annualIncome" placeholder="Annual Income" />
+            <label for="income">Annual Income</label>
+          </div>
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-dark" (click)="prevStep()">← Back</button>
+            <button type="submit" class="btn btn-dark">Next →</button>
+          </div>
+        </form>
+      }
+
+      <!-- Step 3: KYC -->
+      @if (step === 3) {
+        <form [formGroup]="kycForm" (ngSubmit)="onSubmit()" novalidate  style="width: 328px;" class="row g-2">
+          <div class="form-floating mb-3" style="width: 164px;">
+            <input type="text" id="panNumber" class="form-control" formControlName="panNumber" placeholder="PAN Number" />
+            <label for="panNumber">PAN Number</label>
+          </div>
+          <div class="form-floating mb-3" style="width: 164px;">
+            <input type="text" id="aadhaarNumber" class="form-control" formControlName="aadhaarNumber" placeholder="Aadhaar Number" />
+            <label for="aadhaarNumber">Aadhaar Number</label>
+          </div>
+          <div class="form-floating mb-3" style="width: 328px;">
+            <select id="documentType" class="form-select" formControlName="documentType">
+              <option value="Pan">PAN</option>
+              <option value="Aadhaar">Aadhaar</option>
+              <option value="Passport">Passport</option>
+                            <option value="Passport">Passport</option>
+              <option value="DrivingLicense">Driving License</option>
+            </select>
+            <label for="documentType">Document Type</label>
+          </div>
+
+          <!-- File Upload -->
+          <div class="mb-4" style="width: 328px;">
+            <label class="form-label fw-semibold">Upload Document</label>
+            <input type="file" class="form-control rounded-4" (change)="onFileChange($event)" />
+            @if (uploadedFileName) {
+              <small class="text-muted mt-1 d-block">Selected: {{ uploadedFileName }}</small>
+            }
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-dark" (click)="prevStep()">← Back</button>
+            <button type="submit" class="btn btn-dark" [disabled]="kycForm.invalid || isSubmitting">
+              Submit & Finish →
+            </button>
+          </div>
+
+          <!-- Error Message -->
+          @if (registerError) {
+            <div class="alert alert-danger mt-3 text-center rounded-3">
+              {{ registerError }}
+            </div>
+          }
+        </form>
+      }
+      <!-- Step 4: Success -->
+@if (step === 4) {
+  <div class="text-center animate__animated animate__fadeInUp">
+    <h2 class="fw-bold mb-3">🎉 Welcome, {{ userName }}!</h2>
+    <p class="text-muted mb-4">Your account has been created successfully.</p>
+    <a [routerLink]="[dashboardRoute]" class="btn btn-dark rounded-3 px-4 py-2">
+      Go to Dashboard →
+    </a>
+  </div>
+}
+
+      
+    </div>
+  </div>
+</div>

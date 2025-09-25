@@ -1,1 +1,29 @@
-<p>documents works!</p>
+<div class="documents-container">
+  <h4 class="text-center fw-bold mb-4">📁 All Uploaded Documents</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading documents...</p>
+    </div>
+  } @else {
+    @if (documents.length === 0) {
+      <p class="text-muted text-center">No documents found.</p>
+    } @else {
+      <ul class="list-group">
+        @for (doc of documents; track doc.documentId) {
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ doc.documentType }}</strong><br />
+                <small class="text-muted">Uploaded on {{ doc.uploadedAt | date:'mediumDate' }}</small><br />
+                <small class="text-muted">Status: {{ doc.verificationStatus }}</small>
+              </div>
+              <a class="btn btn-sm btn-outline-primary" [href]="getDownloadUrl(doc)" target="_blank">Download</a>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

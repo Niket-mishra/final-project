@@ -1,1 +1,24 @@
-<p>customer-queries works!</p>
+<div class="query-container">
+  <h4 class="text-center fw-bold mb-4">❓ Your Queries</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading your queries...</p>
+    </div>
+  } @else {
+    @if (queries.length === 0) {
+      <p class="text-muted text-center">No queries submitted yet.</p>
+    } @else {
+      <ul class="list-group">
+        @for (q of queries; track q.queryId) {
+          <li class="list-group-item">
+            <strong>{{ q.querySubject }}</strong> — <span class="text-muted">{{ q.queryStatus }}</span>
+            <br />
+            <small class="text-muted">Response: {{ q.officerResponse || 'Pending' }}</small>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

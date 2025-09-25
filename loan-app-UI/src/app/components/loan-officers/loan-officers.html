@@ -1,1 +1,33 @@
-<p>loan-officers works!</p>
+<div class="officer-container">
+  <h4 class="text-center fw-bold mb-4">👥 Loan Officers</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading officers...</p>
+    </div>
+  } @else {
+    @if (officers.length === 0) {
+      <p class="text-muted text-center">No officers found.</p>
+    } @else {
+      <ul class="list-group">
+       @for (officer of officers; track officer.officerId) {
+  <div class="card mb-3 shadow-sm">
+    <div class="card-body">
+      <h5>{{ officer.user.username }}</h5>
+      <p class="text-muted">{{ officer.designation }} — {{ officer.city }}</p>
+      <p><strong>Specialization:</strong> {{ officer.specialization }}</p>
+      <p><strong>Workload:</strong> {{ officer.currentWorkload }}/{{ officer.maxLoansAssigned }}</p>
+      <p><strong>Performance:</strong> {{ officer.performanceRating ?? 'N/A' }}</p>
+      <p><strong>Status:</strong> 
+        <span class="badge" [ngClass]="officer.isActive ? 'bg-success' : 'bg-secondary'">
+          {{ officer.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </p>
+    </div>
+  </div>
+}
+      </ul>
+    }
+  }
+</div>

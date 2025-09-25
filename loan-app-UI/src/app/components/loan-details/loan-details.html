@@ -1,1 +1,29 @@
-<p>loan-details works!</p>
+<div class="loan-container">
+  <h4 class="text-center fw-bold mb-4">💰 Loan Details</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading loan details...</p>
+    </div>
+  } @else {
+    @if (!loan) {
+      <p class="text-muted text-center">Loan not yet disbursed for this application.</p>
+    } @else {
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Loan #{{ loan.loanId }}</h5>
+          <p><strong>Sanctioned Amount:</strong> ₹{{ loan.sanctionedAmount }}</p>
+          <p><strong>Remaining Amount:</strong> ₹{{ loan.remainingAmount }}</p>
+          <p><strong>EMI:</strong> ₹{{ loan.emiAmount }} × {{ loan.totalEmiCount }} months</p>
+          <p><strong>Paid EMIs:</strong> {{ loan.paidEmiCount }}</p>
+          <p><strong>Interest Rate:</strong> {{ loan.interestRateApplied }}%</p>
+          <p><strong>Penalty:</strong> ₹{{ loan.penaltyAmount }}</p>
+          <p><strong>Start Date:</strong> {{ loan.loanStartDate | date:'mediumDate' }}</p>
+          <p><strong>Next Due Date:</strong> {{ loan.nextDueDate | date:'mediumDate' }}</p>
+          <p><strong>Status:</strong> <span class="badge bg-success">{{ loan.loanStatus }}</span></p>
+        </div>
+      </div>
+    }
+  }
+</div>

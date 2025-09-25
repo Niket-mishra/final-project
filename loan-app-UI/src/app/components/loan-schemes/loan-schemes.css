@@ -1,0 +1,14 @@
+.scheme-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.card {
+  border-left: 4px solid #0d6efd;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}

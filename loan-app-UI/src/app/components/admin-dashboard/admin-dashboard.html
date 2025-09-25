@@ -1,1 +1,30 @@
-<p>admin-dashboard works!</p>
+<div class="admin-dashboard">
+  <h3 class="text-center fw-bold mb-4">🛠️ Admin Control Panel</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading dashboard...</p>
+    </div>
+  } @else {
+    <div class="row text-center">
+  @for (stat of [
+    { label: 'Total Applications', value: stats.totalApplications },
+    { label: 'Pending', value: stats.pending },
+    { label: 'Approved', value: stats.approved },
+    { label: 'Rejected', value: stats.rejected },
+    { label: 'Disbursed', value: stats.disbursed },
+    { label: 'Loan Schemes', value: stats.totalSchemes }
+  ]; track stat.label) {
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm stat-card">
+        <div class="card-body">
+          <h6 class="fw-bold">{{ stat.label }}</h6>
+          <p class="display-6 text-primary">{{ stat.value }}</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+  }
+</div>

@@ -1,1 +1,31 @@
-<p>audit-logs works!</p>
+<div class="audit-container">
+  <h4 class="text-center fw-bold mb-4">📜 Audit Trail</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading audit logs...</p>
+    </div>
+  } @else {
+    @if (auditEntries.length === 0) {
+      <p class="text-muted text-center">No audit logs available for this application.</p>
+    } @else {
+      <ul class="list-group">
+        @for (entry of auditEntries; track entry.timestamp) {
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between">
+              <div>
+                <strong>{{ entry.action }}</strong><br />
+                <small class="text-muted">By {{ entry.performedBy }}</small>
+              </div>
+              <span class="badge bg-info">{{ entry.timestamp | date:'medium' }}</span>
+            </div>
+            @if (entry.remarks) {
+              <p class="mt-2 mb-0 text-muted"><em>Remarks:</em> {{ entry.remarks }}</p>
+            }
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

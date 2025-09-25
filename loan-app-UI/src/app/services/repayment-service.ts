@@ -22,5 +22,8 @@ export class RepaymentService {
   }
   getRepaymentsByCustomer(customerId: number): Observable<Repayment[]> {
   return this.http.get<Repayment[]>(`${this.apiUrl}/customer/${customerId}`);
-}
+  }
+  getAllRepayments(): Observable<Repayment[]> {
+  return this.http.get<Repayment[]>(`${this.apiUrl}`);
+  }
 }

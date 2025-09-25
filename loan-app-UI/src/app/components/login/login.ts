@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrls: ['./login.css']
@@ -12,7 +13,6 @@ export class Login {
   loginForm: FormGroup;
   isSubmitting = false;
   loginError: string | null = null;
-  isDarkMode = false; // 🌙 Dark mode state
 
   constructor(private fb: FormBuilder) {
     this.loginForm = this.fb.group({
@@ -21,10 +21,7 @@ export class Login {
     });
   }
 
-  toggleDarkMode() {
-    this.isDarkMode = !this.isDarkMode;
-  }
-
+ 
   onSubmit() {
     if (this.loginForm.invalid) return;
 

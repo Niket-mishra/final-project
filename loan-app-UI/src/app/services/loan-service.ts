@@ -24,4 +24,8 @@ export class LoanService {
   createLoan(payload: Loan): Observable<Loan> {
     return this.http.post<Loan>(this.apiUrl, payload);
   }
+
+  getLoanByApplication(applicationId: number): Observable<Loan> {
+  return this.http.get<Loan>(`${this.apiUrl}/application/${applicationId}`);
+  }
 }

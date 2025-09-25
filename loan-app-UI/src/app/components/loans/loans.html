@@ -1,1 +1,25 @@
-<p>loans works!</p>
+<div class="loans-container">
+  <h4 class="text-center fw-bold mb-4">💼 All Loans</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading loans...</p>
+    </div>
+  } @else {
+    @if (loans.length === 0) {
+      <p class="text-muted text-center">No loans found.</p>
+    } @else {
+      <ul class="list-group">
+        @for (loan of loans; track loan.loanId) {
+          <li class="list-group-item">
+            <strong>Loan #{{ loan.loanId }}</strong><br />
+            <small>Amount: ₹{{ loan.sanctionedAmount }}</small><br />
+            <small>Status: {{ loan.loanStatus }}</small><br />
+            <small>Start Date: {{ loan.loanStartDate | date:'mediumDate' }}</small>
+          </li>
+        }
+      </ul>
+    }
+  }
+</div>

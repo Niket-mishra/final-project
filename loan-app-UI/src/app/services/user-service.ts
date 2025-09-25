@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { User } from '../models/user';
+import { HttpClient } from "@angular/common/http";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
+import { User } from "../models/user";
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +24,11 @@ export class UserService {
   /** Update user profile */
   updateUser(userId: number, payload: Partial<User>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${userId}`, payload);
+  }
+
+  /** Update user role (admin use) */
+  updateUserRole(userId: number, role: string): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${userId}/role`, { role });
   }
 
   /** Soft delete user */
