@@ -53,7 +53,8 @@ export class Register {
   const password = form.get('password')?.value;
   const confirmPassword = form.get('confirmPassword')?.value;
   return password === confirmPassword ? null : { passwordMismatch: true };
-}
+
+  
   get role(): Role {
     return Role.Customer;
   }
