@@ -1,21 +1,69 @@
 <div class="container py-4">
   <h4 class="mb-3 fw-bold">📁 Upload Your Documents</h4>
 
-  <div class="mb-3">
-    <label>Select Document Type</label>
-    <select [(ngModel)]="documentType" class="form-select">
-      <option value="PAN">PAN</option>
-      <option value="Aadhaar">Aadhaar</option>
-      <option value="Passport">Passport</option>
-      <option value="DrivingLicense">Driving License</option>
-    </select>
-  </div>
+  @if (!allDocumentsAdded()) {
+    <div class="mb-3">
+      <label>Select Document Type</label>
+      <select [(ngModel)]="selectedType" class="form-select">
+        @for (type of documentTypes; track type) {
+          <option [value]="type" [disabled]="isTypeAdded(type)">
+            {{ type }}
+          </option>
+        }
+      </select>
+    </div>
 
-  <div class="mb-3">
-    <input type="file" multiple (change)="onFileSelect($event)" class="form-control" />
-  </div>
+    @if (selectedType && !isTypeAdded(selectedType)) {
+      <div class="mb-3">
+        <label>Enter Document Number</label>
+        <input type="text" [(ngModel)]="documentNumber" class="form-control" />
+      </div>
 
-  <button class="btn btn-success w-100" (click)="uploadDocuments()" [disabled]="isUploading || !selectedFiles.length">
-    {{ isUploading ? 'Uploading...' : 'Upload Documents' }}
-  </button>
+      <div class="mb-3">
+        <label>Upload Document</label>
+        <input type="file" (change)="onFileSelect($event)" class="form-control" />
+      </div>
+
+      <button class="btn btn-primary w-100"
+        (click)="stageDocument()"
+        [disabled]="!documentNumber || !selectedFile">
+        Add Document
+      </button>
+    }
+  }
+
+  <hr class="my-4" />
+
+  @if (stagedDocuments.length > 0) {
+    <h5 class="fw-bold">📦 Staged Documents</h5>
+    <ul class="list-group mb-3">
+      @for (doc of stagedDocuments; track doc.type) {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span (click)="openPreview(doc)" style="cursor: pointer;">
+            {{ doc.type }} — {{ doc.number }}
+          </span>
+          <button class="btn btn-sm btn-outline-danger" (click)="removeDocument(doc.type)">❌</button>
+        </li>
+      }
+    </ul>
+
+    @if (allDocumentsAdded()) {
+      <button class="btn btn-success w-100" (click)="uploadAll()" [disabled]="isUploading">
+        {{ isUploading ? 'Uploading...' : 'Upload All Documents' }}
+      </button>
+    }
+  }
+
+  <!-- Floating Preview Modal -->
+  @if (previewModalVisible && previewModalUrl) {
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content position-relative">
+          <button type="button" class="btn-close position-absolute top-0 end-0 m-3" (click)="closePreview()"></button>
+          <img [src]="previewModalUrl" alt="Preview" class="img-fluid rounded" />
+        </div>
+      </div>
+    </div>
+  }
 </div>

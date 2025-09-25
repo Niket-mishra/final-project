@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Auth } from './services/auth';
 
 @Component({
@@ -10,11 +10,14 @@ import { Auth } from './services/auth';
 })
 export class App {
   protected readonly title = signal('loan-app-UI');
-  constructor(public authService: Auth) {}
+  constructor(public authService: Auth,private router: Router) {
+     this.router.events.subscribe(event => {
+    console.log('🧭 Navigation event:', event);
+  });
+  }
 
   logout(): void {
     this.authService.logout();
   }
-
  
 }

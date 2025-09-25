@@ -53,8 +53,8 @@ export class Register {
   const password = form.get('password')?.value;
   const confirmPassword = form.get('confirmPassword')?.value;
   return password === confirmPassword ? null : { passwordMismatch: true };
-
-  
+  }
+   
   get role(): Role {
     return Role.Customer;
   }
@@ -95,22 +95,30 @@ export class Register {
       ...this.kycForm.getRawValue()
     };
 
-    this.auth.register(payload).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.step = 4; // Show success screen
-      },
-      error: (err) => {
-        this.isSubmitting = false;
-        this.registerError = err?.error?.message ?? 'Registration failed';
-      }
-    });
-  }
-  get userName(): string {
-  return this.auth.getUserName();
-}
+//     this.auth.register(payload).subscribe({
+//       next: () => {
+//         this.isSubmitting = false;
+//         this.step = 4; // Show success screen
+//       },
+//       error: (err) => {
+//         this.isSubmitting = false;
+//         this.registerError = err?.error?.message ?? 'Registration failed';
+//       }
+//     });
+//   }
+//   get userName(): string {
+//   return this.auth.getUserName();
+// }
 
-get dashboardRoute(): string {
-  return this.auth.getDashboardRoute();
+// get dashboardRoute(): string {
+//   return this.auth.getDashboardRoute();
+// }
+// }
+
+// function nextStep() {
+//   throw new Error('Function not implemented.');
+// }
+
+  }
 }
-}
+  

@@ -1,7 +1,7 @@
 <div class="container py-4">
-  <h3 class="mb-4 text-center fw-bold">📋 Apply for a Loan</h3>
+  <h3 class="mb-2 text-center fw-bold">📋 Apply for a Loan</h3>
 
-  <form [formGroup]="loanForm" (ngSubmit)="submitApplication()" class="card p-4 shadow-sm">
+  <form [formGroup]="loanForm" (ngSubmit)="submitApplication()" class=" p-4">
     <div class="mb-3">
       <label>Loan Scheme</label>
       <select formControlName="schemeId" class="form-select">
@@ -17,9 +17,18 @@
     </div>
 
     <div class="mb-3">
-      <label>Purpose of Loan</label>
-      <textarea formControlName="purposeOfLoan" class="form-control"></textarea>
-    </div>
+  <label>Purpose of Loan</label>
+  <select formControlName="purposeOfLoan" class="form-select" (change)="onPurposeChange($event)">
+    <option value="" disabled selected>Select purpose</option>
+    <option *ngFor="let option of loanPurposes" [value]="option">{{ option }}</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+
+<div class="mb-3" *ngIf="showCustomPurpose">
+  <label>Specify Other Purpose</label>
+  <input type="text" formControlName="customPurpose" class="form-control" />
+</div>
 
     <div class="mb-3">
       <label>Employment Details</label>

@@ -1,74 +1,47 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { ToastrService } from 'ngx-toastr';
 
-export interface AuthResponse {
-  userId: number;
-  email: string;
-  role: 'Admin' | 'LoanOfficer' | 'Customer';
-  token: string;
-}
-
-interface JwtPayload {
-  exp: number;
-  sub: string;
-  role: string;
-  userId: number;
-  email: string;
-  name?: string;
-}
-
 @Injectable({ providedIn: 'root' })
 export class Auth {
-  private readonly apiUrl = 'https://your-api-url.com/api/auth';
+  private readonly apiUrl = 'https://oesophageal-unrighteously-laurene.ngrok-free.dev';
+
+  // 🧠 Reactive login state
+  private loggedIn = signal(this.isLoggedIn());
+  isLoggedInSignal = this.loggedIn;
+
+   
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private zone: NgZone
   ) {}
 
   // 🔐 Login
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap(res => {
-        this.storeToken(res);
+  login(username: string, password: string): Observable<{ token: string }> {
+    return this.http.post<{ token: string }>(
+      `${this.apiUrl}/login`,
+      {
+        Username: username,
+        PasswordHash: password
+      }
+    ).pipe(
+      tap((res) => {
+        const token = res.token;
+        console.log('🔐 Token:', token);
+        this.storeDecodedToken(token);
+        this.updateLoginState();
+        console.log('🎯 Redirecting to:', this.getDashboardRoute());
         this.toast('Login successful');
-        this.router.navigate([this.getDashboardRoute()]);
-      })
-    );
-  }
 
-  // 📝 Register
-  register(payload: {
-    name: string;
-    email: string;
-    password: string;
-    role?: 'Admin' | 'LoanOfficer' | 'Customer';
-  }): Observable<AuthResponse> {
-    const finalPayload = {
-      ...payload,
-      role: payload.role ?? 'Customer'
-    };
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, finalPayload).pipe(
-      tap(res => {
-        this.storeToken(res);
-        this.toast('Registration successful');
-        this.router.navigate([this.getDashboardRoute()]);
-      })
-    );
-  }
-
-  // 🔄 Refresh
-  refreshToken(): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, {}).pipe(
-      tap(res => {
-        this.storeToken(res);
-        this.toast('Session refreshed');
+        this.zone.run(() => {
+          this.router.navigate([this.getDashboardRoute()]);
+        });
       })
     );
   }
@@ -76,16 +49,51 @@ export class Auth {
   // 🔓 Logout
   logout(): void {
     localStorage.clear();
+    this.updateLoginState();
     this.toast('Logged out', 'success');
     this.router.navigate(['/auth/login']);
   }
 
   // 🧠 Token Storage
-  private storeToken(res: AuthResponse): void {
-    localStorage.setItem('auth_token', res.token);
-    localStorage.setItem('user_role', res.role);
-    localStorage.setItem('user_email', res.email);
-    localStorage.setItem('user_id', res.userId.toString());
+  private storeDecodedToken(token: string): void {
+    try {
+      const decoded: any = jwtDecode(token);
+      console.log('🧠 Decoded token:', decoded);
+
+      const role =
+        decoded.role ||
+        decoded.Role ||
+        decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+      const userId =
+        decoded.userId ||
+        decoded.UserId ||
+        decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+
+      const email =
+        decoded.email ||
+        decoded.UserEmail ||
+        decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'];
+
+      const name =
+        decoded.name ||
+        decoded.UserName ||
+        decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+        decoded.sub;
+
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user_role', role ?? '');
+      localStorage.setItem('user_email', email ?? '');
+      localStorage.setItem('user_id', userId?.toString() ?? '');
+      localStorage.setItem('user_name', name ?? 'User');
+    } catch (err) {
+      console.error('❌ Token decode failed:', err);
+    }
+  }
+
+  // 🔄 Login State Sync
+  updateLoginState(): void {
+    this.loggedIn.set(this.isLoggedIn());
   }
 
   // 🔍 Accessors
@@ -106,35 +114,35 @@ export class Auth {
     return id ? parseInt(id, 10) : null;
   }
 
-  getDecodedToken(): JwtPayload | null {
+  getUserName(): string {
+    return localStorage.getItem('user_name') ?? 'User';
+  }
+
+  getDecodedToken(): any | null {
     const token = this.getToken();
     if (!token) return null;
     try {
-      return jwtDecode<JwtPayload>(token);
+      return jwtDecode(token);
     } catch {
       return null;
     }
   }
 
-  getUserName(): string {
-    return this.getDecodedToken()?.name ?? 'User';
-  }
-
   getCurrentUser(): { userId: number; role: string; email: string; name?: string } | null {
-    const token = this.getDecodedToken();
-    if (!token) return null;
+    const decoded = this.getDecodedToken();
+    if (!decoded) return null;
     return {
-      userId: token.userId,
-      role: token.role,
-      email: token.email,
-      name: token.name
+      userId: this.getUserId() ?? 0,
+      role: this.getUserRole() ?? '',
+      email: this.getUserEmail() ?? '',
+      name: this.getUserName()
     };
   }
 
   // ⏳ Expiry Check
   isTokenExpired(token: string): boolean {
     try {
-      const decoded = jwtDecode<JwtPayload>(token);
+      const decoded: any = jwtDecode(token);
       const now = Math.floor(Date.now() / 1000);
       return decoded.exp < now;
     } catch {
@@ -152,26 +160,28 @@ export class Auth {
     setInterval(() => {
       const token = this.getToken();
       if (token && this.isTokenExpired(token)) {
-        this.refreshToken().subscribe({
-          error: () => this.logout()
-        });
+        this.logout();
       }
     }, intervalMs);
   }
 
   // 🎯 Role-Based Routing
   getDashboardRoute(): string {
-    const role = this.getUserRole();
+    const role = this.getUserRole()?.toLowerCase();
+    console.log('🎯 Normalized role:', role);
+
     switch (role) {
-      case 'Admin': return '/admin/dashboard';
-      case 'LoanOfficer': return '/officer/dashboard';
-      case 'Customer': return '/customer/dashboard';
+      case 'admin': return '/admin/dashboard';
+      case 'loanofficer': return '/officer/dashboard';
+      case 'customer': return '/customer/dashboard';
       default: return '/auth/login';
     }
   }
 
   redirectByRole(): void {
-    this.router.navigate([this.getDashboardRoute()]);
+    this.zone.run(() => {
+      this.router.navigate([this.getDashboardRoute()]);
+    });
   }
 
   // 🎨 Toast Feedback

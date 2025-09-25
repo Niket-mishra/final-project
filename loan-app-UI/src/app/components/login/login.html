@@ -1,26 +1,55 @@
 <div class="container py-5 d-flex align-items-center justify-content-center min-vh-100 min-vw-100 bg-gradient">
   <div class="login-card card shadow-lg border-0 animate__animated animate__fadeInDown">
     <div class="card-body p-5">
+      <!-- Heading -->
       <h2 class="text-center mb-4 fw-bold animate__animated animate__fadeIn">✨ Welcome Back</h2>
-      <p class="text-center text-muted mb-4 animate__animated animate__fadeIn animate__delay-1s">Login to continue your journey 🚀</p>
+      <p class="text-center text-muted mb-4 animate__animated animate__fadeIn animate__delay-1s">
+        Login to continue your journey 🚀
+      </p>
 
+      <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-        <!-- Email -->
+        <!-- Username -->
         <div class="form-floating mb-3 animate__animated animate__fadeInLeft animate__delay-1s">
-          <input type="email" id="email" class="form-control rounded-4" formControlName="email" placeholder="Email" />
-          <label for="email">Email</label>
+          <input
+            type="text"
+            id="username"
+            class="form-control rounded-4"
+            formControlName="username"
+            placeholder="Username"
+          />
+          <label for="username">Username</label>
         </div>
 
         <!-- Password -->
         <div class="form-floating mb-4 animate__animated animate__fadeInRight animate__delay-1s">
-          <input type="password" id="password" class="form-control rounded-4" formControlName="password" placeholder="Password" />
+          <input
+            type="password"
+            id="password"
+            class="form-control rounded-4"
+            formControlName="password"
+            placeholder="Password"
+          />
           <label for="password">Password</label>
         </div>
 
+        <!-- reCAPTCHA
+        <div class="mb-4 text-center animate__animated animate__fadeInUp animate__delay-2s">
+          <re-captcha
+            #captchaRef
+            formControlName="recaptcha"
+            [siteKey]="recaptchaSiteKey"
+            (expired)="onCaptchaExpired()"
+            (errored)="onCaptchaErrored()"
+          ></re-captcha>
+        </div> -->
+
         <!-- Submit Button -->
-        <button type="submit" 
-                class="btn btn-dark w-100 py-2 rounded-3 shadow-sm animate__animated animate__pulse animate__infinite"
-                [disabled]="loginForm.invalid || isSubmitting">
+        <button
+          type="submit"
+          class="btn btn-dark w-100 py-2 rounded-3 shadow-sm animate__animated animate__pulse animate__infinite"
+          [disabled]="loginForm.invalid || isSubmitting"
+        >
           @if (isSubmitting) {
             <span class="spinner-border spinner-border-sm me-2"></span>
           }
@@ -37,7 +66,10 @@
         <!-- Sign Up CTA -->
         <div class="text-center mt-4 animate__animated animate__fadeInUp animate__delay-2s">
           <small class="text-muted">New here?</small>
-          <a [routerLink]="['/auth/register']" class="d-block fw-bold text-decoration-none mt-2 btn btn-outline-dark rounded-3 shadow-sm">
+          <a
+            [routerLink]="['/auth/register']"
+            class="d-block fw-bold text-decoration-none mt-2 btn btn-outline-dark rounded-3 shadow-sm"
+          >
             Register Now →
           </a>
         </div>

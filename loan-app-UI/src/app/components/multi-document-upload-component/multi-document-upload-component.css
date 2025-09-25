@@ -1,12 +1,116 @@
+/* Container */
 .container {
-  max-width: 600px;
+  max-width: 700px;
   margin: auto;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-select, input[type="file"] {
-  font-weight: 500;
+/* Headings */
+h4, h5 {
+  color: #2c3e50;
 }
 
-button {
+/* Form Labels */
+label {
   font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #34495e;
+}
+
+/* Inputs & Selects */
+.form-control, .form-select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #5c9ded;
+  box-shadow: 0 0 0 0.2rem rgba(92, 157, 237, 0.25);
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #5c9ded;
+  border-color: #5c9ded;
+}
+
+.btn-primary:hover {
+  background-color: #4a8ad4;
+}
+
+.btn-success {
+  background-color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+.btn-success:hover {
+  background-color: #27ae60;
+}
+
+.btn-outline-danger {
+  border-radius: 50px;
+  padding: 0.25rem 0.6rem;
+}
+
+/* List Group */
+.list-group-item {
+  border: none;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  margin-bottom: 0.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+  background-color: #e9ecef;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1040;
+}
+
+/* Modal */
+.modal {
+  z-index: 1050;
+}
+
+.modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Close Button */
+.btn-close {
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Preview */
+img.img-thumbnail {
+  border-radius: 12px;
+  object-fit: cover;
+  max-height: 400px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
