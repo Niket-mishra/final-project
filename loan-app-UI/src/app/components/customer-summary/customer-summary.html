@@ -1,0 +1,26 @@
+<div class="customer-summary container py-4">
+  <h3 class="text-center fw-bold mb-4">👤 Customer Summary</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading summary...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && summary) {
+    <div class="card shadow-sm border-0">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3">{{ customerName }}</h5>
+        <p><strong>Total Applications:</strong> {{ summary.total }}</p>
+        <p><strong>Approved:</strong> {{ summary.approved }}</p>
+        <p><strong>Rejected:</strong> {{ summary.rejected }}</p>
+        <p><strong>Pending:</strong> {{ summary.pending }}</p>
+      </div>
+    </div>
+  }
+</div>

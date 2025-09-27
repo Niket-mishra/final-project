@@ -1,0 +1,45 @@
+<div class="customer-settings container py-4">
+  <h3 class="text-center fw-bold mb-4">⚙️ Customer Settings</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading settings...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && customer) {
+    <form (ngSubmit)="save()" #form="ngForm">
+      <div class="mb-3">
+        <label class="form-label">First Name</label>
+        <input type="text" class="form-control" [(ngModel)]="customer.firstName" name="firstName" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Last Name</label>
+        <input type="text" class="form-control" [(ngModel)]="customer.lastName" name="lastName" required />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">City</label>
+        <input type="text" class="form-control" [(ngModel)]="customer.city" name="city" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Occupation</label>
+        <input type="text" class="form-control" [(ngModel)]="customer.occupation" name="occupation" />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Annual Income</label>
+        <input type="number" class="form-control" [(ngModel)]="customer.annualIncome" name="annualIncome" />
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+    </form>
+  }
+</div>

@@ -25,4 +25,12 @@ export class DocumentService {
   getAllDocuments(): Observable<LoanDocument[]> {
   return this.http.get<LoanDocument[]>(`${this.apiUrl}`);
   }
+  getPendingDocuments(): Observable<LoanDocument[]> {
+    return this.http.get<LoanDocument[]>(`${this.apiUrl}/pending`);
+  }
+
+  rejectDocument(id: number, status: string = 'Rejected', remarks: string = 'Document rejected'): Observable<void> {
+  return this.http.patch<void>(`${this.apiUrl}/${id}/reject`, { status, remarks });
+  }
+
 }

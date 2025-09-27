@@ -1,0 +1,43 @@
+<div class="assign-container">
+  <h4 class="fw-bold mb-3">🎯 Assign Officer</h4>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary"></div>
+      <p class="mt-2">Loading application and officers...</p>
+    </div>
+  } @else {
+    @if (!application) {
+      <div class="alert alert-danger" role="alert">
+        Application not found.
+      </div>
+    } @else if (officers.length === 0) {
+      <div class="alert alert-warning" role="alert">
+        No active officers available to assign.
+      </div>
+    } @else {
+      <div class="mb-3">
+        <label class="form-label">Application #{{ application.applicationId }}</label>
+        <p class="text-muted">{{ application.purposeOfLoan }}</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Select Officer</label>
+        <select [(ngModel)]="selectedOfficerId" class="form-select">
+          @for (officer of officers; track officer.officerId) {
+            <option [value]="officer.officerId">{{ officer.user.username }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" (click)="assignOfficer()" [disabled]="!selectedOfficerId">
+          Assign Officer
+        </button>
+        <button class="btn btn-outline-secondary" (click)="assignRandom()">
+          🎲 Assign Randomly
+        </button>
+      </div>
+    }
+  }
+</div>

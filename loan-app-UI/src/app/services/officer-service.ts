@@ -5,6 +5,8 @@ import { LoanOfficer } from '../models/loan-officer';
 import { LoanApplication } from '../models/loan-application';
 import { LoanDocument } from '../models/loan-document';
 import { CustomerQuery } from '../models/customer-query';
+import { Repayment } from '../models/repayment';
+import { EmailNotification } from '../models/email-notification';
 
 @Injectable({ providedIn: 'root' })
 export class OfficerService {
@@ -82,19 +84,41 @@ export class OfficerService {
   applications: LoanApplication[];
   documents: LoanDocument[];
   queries: CustomerQuery[];
-}> {
+  }> {
   return this.http.get<{
     applications: LoanApplication[];
     documents: LoanDocument[];
     queries: CustomerQuery[];
   }>(`${this.apiUrl}/${officerId}/dashboard`);
-}
-createOfficer(payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
+  }
+  createOfficer(payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
   return this.http.post<LoanOfficer>(`${this.apiUrl}`, payload);
-}
+  }
 
-updateOfficer(id: number, payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
+  updateOfficer(id: number, payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
   return this.http.put<LoanOfficer>(`${this.apiUrl}/${id}`, payload);
-}
+  }
+
+  getRepaymentsByOfficer(officerId: number): Observable<Repayment[]> {
+  return this.http.get<Repayment[]>(`/api/officers/${officerId}/repayments`);
+  }
+
+  getEmailNotifications(officerId: number): Observable<EmailNotification[]> {
+    return this.http.get<EmailNotification[]>(`/api/officers/${officerId}/email-notifications`);
+  }
+
+   getDocumentsForAssignedApplications(officerId: number): Observable<LoanDocument[]> {
+    return this.http.get<LoanDocument[]>(`/api/officers/${officerId}/assigned-documents`);
+  }
+
+  updateDocumentStatus(documentId: number, payload: Partial<LoanDocument>): Observable<any> {
+    return this.http.patch(`/api/documents/${documentId}/status`, payload);
+  }
+
+  updateDocumentRemarks(documentId: number, remarks: string): Observable<any> {
+    return this.http.patch(`/api/documents/${documentId}/remarks`, { verificationRemarks: remarks });
+  }
+
+
 
 }

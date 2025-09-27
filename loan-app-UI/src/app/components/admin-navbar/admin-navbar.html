@@ -1,0 +1,38 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" [routerLink]="['/admin/dashboard']">
+      <i class="fas fa-tools me-2"></i>Admin Panel
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/dashboard']">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/loan-schemes']">Loan Schemes</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/loan-officers']">Loan Officers</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/users']">User Management</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/audit-logs']">Audit Logs</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/reports']">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/npa-monitoring']">NPA Monitoring</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/admin/notifications']">Notifications</a></li>
+      </ul>
+
+      <!-- Profile Dropdown -->
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-1"></i>
+            {{ authService.getUserName() }} (Admin)
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" [routerLink]="['/admin/settings']"><i class="fas fa-cog me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" (click)="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

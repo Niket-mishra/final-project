@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" [routerLink]="['/officer/dashboard']">
+      <i class="fas fa-user-shield me-2"></i>Officer Panel
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarOfficer">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarOfficer">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/dashboard']">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/assigned-applications']">Applications</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/customers']">Customers</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/document-verification']">Documents</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/loan-approvals']">Loan Approvals</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/queries']">Customer Queries</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/performance']">Performance</a></li>
+        <li class="nav-item"><a class="nav-link" [routerLink]="['/officer/notifications']">Notifications</a></li>
+      </ul>
+
+      <!-- Profile Dropdown -->
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-1"></i>
+            {{ authService.getUserName() }} (Officer)
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" [routerLink]="['/officer/profile']"><i class="fas fa-user me-2"></i>Profile</a></li>
+            <li><a class="dropdown-item" [routerLink]="['/officer/settings']"><i class="fas fa-cog me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" (click)="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,74 @@
+<div class="officer-settings container py-4">
+  <h3 class="text-center fw-bold mb-4">⚙️ Officer Settings</h3>
+
+  <ng-container *ngIf="isLoading; else settingsContent">
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading settings...</p>
+    </div>
+  </ng-container>
+
+  <ng-template #settingsContent>
+    <div *ngIf="errorMessage" class="alert alert-danger text-center">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="successMessage" class="alert alert-success text-center">
+      {{ successMessage }}
+    </div>
+
+    <form *ngIf="officer" (ngSubmit)="updateSettings()" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Full Name</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="officer.user.username"
+          name="username"
+          required
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Email</label>
+        <input
+          type="email"
+          class="form-control"
+          [(ngModel)]="officer.user.email"
+          name="email"
+          required
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Phone</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="officer.user.phoneNumber"
+          name="phone"
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">City Preference</label>
+        <select
+          class="form-select"
+          [(ngModel)]="officer.city"
+          name="city"
+        >
+          <option value="Mumbai">Mumbai</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Bangalore">Bangalore</option>
+          <option value="None">None</option>
+        </select>
+      </div>
+
+      <div class="col-12 text-center mt-4">
+        <button type="submit" class="btn btn-primary px-4">
+          Update Settings
+        </button>
+      </div>
+    </form>
+  </ng-template>
+</div>

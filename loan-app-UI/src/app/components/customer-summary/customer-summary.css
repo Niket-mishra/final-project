@@ -1,0 +1,8 @@
+.customer-summary {
+  max-width: 600px;
+  margin: auto;
+}
+
+.card-body p {
+  margin-bottom: 0.5rem;
+}

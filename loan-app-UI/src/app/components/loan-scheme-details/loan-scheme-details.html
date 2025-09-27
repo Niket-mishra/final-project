@@ -1,0 +1,27 @@
+<div class="loan-scheme-details card shadow-sm border-0">
+  <div class="card-body">
+    <h4 class="fw-bold mb-2">{{ scheme.schemeName }}</h4>
+    <p class="text-muted">{{  scheme.eligibilityCriteria }}</p>
+
+    <div class="row mb-3">
+      <div class="col-6"><strong>Interest Rate:</strong> {{ scheme.interestRate }}%</div>
+      <div class="col-6"><strong>Tenure:</strong> {{ scheme.tenureMonths }} months</div>
+      <div class="col-6"><strong>Amount Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</div>
+      <div class="col-6"><strong>Status:</strong>
+        <span class="badge bg-{{ getStatusBadge() }}">
+          {{ scheme.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="mb-2"><strong>Eligibility:</strong> {{ scheme.eligibilityCriteria }}</div>
+    <div class="mb-2"><strong>Created On:</strong> {{ getFormattedDate(scheme.createdAt) }}</div>
+    <div class="mb-2"><strong>Last Updated:</strong> {{ getFormattedDate(scheme.updatedAt) }}</div>
+
+    @if (scheme.loanAdmin) {
+      <div class="mt-3 text-muted small">
+        <strong>Created By:</strong> {{ scheme.loanAdmin.user?.username }} (Admin ID: {{ scheme.createdBy }})
+      </div>
+    }
+  </div>
+</div>

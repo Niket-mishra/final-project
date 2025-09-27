@@ -82,4 +82,9 @@ export class LoanApplicationService {
   return this.http.get<ApplicationSummary>(`${this.apiUrl}/customer/${customerId}/summary`);
   }
 
+  // 📌 Get count of unassigned applications (for admin dashboard)
+  getUnassignedCount(): Observable<number> {
+  return this.http.get<number>(`${this.apiUrl}/unassigned/count`);
+  }
+
 }

@@ -1,8 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { LoanDocument } from '../../models/loan-document';
+import { LoanDocument, DocumentStatus } from '../../models/loan-document';
 import { DocumentService } from '../../services/document-service';
 import { ToastService } from '../../services/toast-service';
+import { CloudinaryService } from '../../services/cloudinary-service';
 
 @Component({
   selector: 'app-documents',
@@ -14,9 +15,13 @@ import { ToastService } from '../../services/toast-service';
 export class Documents implements OnInit {
   documents: LoanDocument[] = [];
   isLoading = true;
+  previewUrl: string | null = null;
+  previewVisible = false;
 
   private documentService = inject(DocumentService);
   private toast = inject(ToastService);
+  private cloudinary = inject(CloudinaryService);
+  private datePipe = inject(DatePipe);
 
   ngOnInit(): void {
     this.loadAllDocuments();
@@ -36,7 +41,47 @@ export class Documents implements OnInit {
     });
   }
 
-  getDownloadUrl(doc: LoanDocument): string {
-    return `/files/${doc.filePath}`;
+  getCloudinaryUrl(doc: LoanDocument): string {
+    return typeof doc.filePath === 'string' ? doc.filePath : '';
+  }
+
+  getFormattedDate(date: Date): string {
+    return this.datePipe.transform(date, 'MMM d, y, h:mm a') || '';
+  }
+
+  getStatusBadge(status: DocumentStatus): string {
+    switch (status) {
+      case DocumentStatus.Pending:
+        return 'badge-pending';
+      case DocumentStatus.Approved:
+        return 'badge-approved';
+      case DocumentStatus.Rejected:
+        return 'badge-rejected';
+      default:
+        return 'badge-unknown';
+    }
+  }
+
+  openPreview(doc: LoanDocument): void {
+    this.previewUrl = this.getCloudinaryUrl(doc);
+    this.previewVisible = true;
+  }
+
+  closePreview(): void {
+    this.previewUrl = null;
+    this.previewVisible = false;
+  }
+
+  downloadDocument(doc: LoanDocument): void {
+    const url = this.getCloudinaryUrl(doc);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = doc.fileName;
+    link.target = '_blank';
+    link.click();
+  }
+
+  trackById(index: number, doc: LoanDocument): string {
+    return doc.documentType + doc.fileName;
   }
 }

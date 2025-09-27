@@ -1,0 +1,18 @@
+.emi-calculator {
+  max-width: 500px;
+  margin: auto;
+}
+
+.calculator-form .form-label {
+  font-weight: 500;
+}
+
+.calculator-form .btn {
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+}
+
+.result-box {
+  font-size: 1.2rem;
+  font-weight: 600;
+}

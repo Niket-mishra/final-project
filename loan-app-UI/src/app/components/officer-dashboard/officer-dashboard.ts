@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OfficerService } from '../../services/officer-service';
-import { LoanApplication } from '../../models/loan-application';
-import { LoanDocument } from '../../models/loan-document';
+import { LoanApplication, ApplicationStatus } from '../../models/loan-application';
+import { LoanDocument, DocumentStatus } from '../../models/loan-document';
 import { CustomerQuery } from '../../models/customer-query';
 import { Auth } from '../../services/auth';
 import { ToastService } from '../../services/toast-service';
@@ -27,7 +27,14 @@ export class OfficerDashboard implements OnInit {
   private toast = inject(ToastService);
 
   ngOnInit(): void {
-    this.officerId = this.auth.getUserId() ?? 0;
+    const id = this.auth.getUserId();
+    if (typeof id !== 'number') {
+      this.error = 'Invalid officer ID.';
+      this.isLoading = false;
+      return;
+    }
+
+    this.officerId = id;
     this.loadDashboard();
   }
 
@@ -49,7 +56,26 @@ export class OfficerDashboard implements OnInit {
     });
   }
 
-  getStatusColor(status: string): string {
+  getApplicationBadge(status: ApplicationStatus): string {
+    switch (status) {
+      case ApplicationStatus.Approved: return 'success';
+      case ApplicationStatus.Rejected: return 'danger';
+      case ApplicationStatus.Pending: return 'warning';
+      case ApplicationStatus.Disbursed: return 'info';
+      default: return 'secondary';
+    }
+  }
+
+  getDocumentBadge(status: DocumentStatus): string {
+    switch (status) {
+      case DocumentStatus.Approved: return 'success';
+      case DocumentStatus.Rejected: return 'danger';
+      case DocumentStatus.Pending: return 'warning';
+      default: return 'secondary';
+    }
+  }
+
+  getQueryBadge(status: string): string {
     switch (status) {
       case 'Open': return 'warning';
       case 'InProgress': return 'info';

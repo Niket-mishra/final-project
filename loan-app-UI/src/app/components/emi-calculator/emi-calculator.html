@@ -1,0 +1,28 @@
+<div class="emi-calculator container py-4">
+  <h3 class="text-center fw-bold mb-4">📊 EMI Calculator</h3>
+
+  <form class="calculator-form" (ngSubmit)="calculateEMI()" #form="ngForm">
+    <div class="mb-3">
+      <label class="form-label">Loan Amount (₹)</label>
+      <input type="number" class="form-control" [(ngModel)]="amount" name="amount" required min="1" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Interest Rate (%)</label>
+      <input type="number" class="form-control" [(ngModel)]="interestRate" name="interestRate" required min="0.1" step="0.01" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Tenure (Months)</label>
+      <input type="number" class="form-control" [(ngModel)]="tenureMonths" name="tenureMonths" required min="1" />
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">Calculate EMI</button>
+  </form>
+
+  @if (emi > 0) {
+    <div class="result-box alert alert-success text-center mt-4">
+      <h5 class="mb-0">Estimated EMI: ₹{{ emi }}</h5>
+    </div>
+  }
+</div>

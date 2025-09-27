@@ -1,0 +1,39 @@
+<div class="loan-schemes-customer container py-4">
+  <h3 class="text-center fw-bold mb-4">💼 Explore Loan Schemes</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Fetching schemes for you...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && schemes.length === 0 && !errorMessage) {
+    <div class="text-center text-muted">No active loan schemes available at the moment.</div>
+  }
+
+  @if (!isLoading && schemes.length > 0) {
+    <div class="row g-3">
+      @for (scheme of schemes; track scheme.schemeId) {
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="fw-bold">{{ scheme.schemeName }}</h5>
+              <p class="text-muted">{{ scheme.eligibilityCriteria }}</p>
+              <p><strong>Loan Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</p>
+              <p><strong>Interest Rate:</strong> {{ scheme.interestRate }}%</p>
+              <p><strong>Tenure:</strong> {{ scheme.tenureMonths }} months</p>
+              <button class="btn btn-outline-primary w-100 mt-3">
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

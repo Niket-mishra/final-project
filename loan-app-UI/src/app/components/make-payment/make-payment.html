@@ -1,0 +1,27 @@
+<!-- src/app/components/make-payment.html -->
+<div class="make-payment container py-4">
+  <h3 class="text-center fw-bold mb-4">💳 Make a Payment</h3>
+
+  @if (successMessage) {
+    <div class="alert alert-success text-center">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  <form class="payment-form" (ngSubmit)="submitPayment()" #form="ngForm">
+    <div class="mb-3">
+      <label class="form-label">Amount (₹)</label>
+      <input type="number" class="form-control" [(ngModel)]="amount" name="amount" required min="1" />
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting">
+      @if (isSubmitting) {
+        <span class="spinner-border spinner-border-sm me-2"></span> Processing...
+      } @else {
+        Pay with Razorpay
+      }
+    </button>
+  </form>
+</div>

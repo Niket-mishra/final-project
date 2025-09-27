@@ -1,0 +1,40 @@
+<div class="officer-profile container py-4">
+  <h3 class="text-center fw-bold mb-4">👤 Officer Profile</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading profile...</p>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+    }
+
+    @if (officer) {
+      <div class="card shadow-sm p-4">
+        <h5 class="fw-bold mb-3">{{ officer.user.username }}</h5>
+        <p><strong>Email:</strong> {{ officer.user.email }}</p>
+        <p><strong>Phone:</strong> {{ officer.user.phoneNumber }}</p>
+        <p><strong>City:</strong> {{ officer.city }}</p>
+        <p><strong>Designation:</strong> {{ officer.designation }}</p>
+        <p><strong>Specialization:</strong> {{ officer.specialization }}</p>
+        <p><strong>Max Loans:</strong> {{ officer.maxLoansAssigned }}</p>
+        <p><strong>Current Workload:</strong> {{ officer.currentWorkload }}</p>
+        <p><strong>Performance Rating:</strong> {{ officer.performanceRating ?? '—' }}</p>
+        <p>
+          <strong>Status:</strong>
+          <span class="badge bg-{{ getStatusBadge() }}">
+            {{ officer.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </p>
+        <p class="text-muted mt-3">
+          <small>Created: {{ officer.createdAt | date:'mediumDate' }}</small><br>
+          <small>Updated: {{ officer.updatedAt ?? '—' }}</small>
+        </p>
+      </div>
+    }
+  }
+
+ 
+</div>

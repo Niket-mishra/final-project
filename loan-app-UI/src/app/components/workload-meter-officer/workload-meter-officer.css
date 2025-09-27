@@ -1,0 +1,29 @@
+.workload-meter {
+  max-width: 1000px;
+  margin: auto;
+  padding: 2rem;
+}
+
+.card {
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.progress {
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,38 @@
+<div class="report-generator container py-4">
+  <h3 class="text-center fw-bold mb-4">📊 Officer Report Generation</h3>
+
+  <form (ngSubmit)="generateReport()" class="row g-3">
+    <div class="col-md-4">
+      <label for="reportType" class="form-label">Report Type</label>
+      <select id="reportType" class="form-select" [(ngModel)]="reportType" name="reportType" required>
+        <option value="" disabled selected>Select type</option>
+        <option value="applications">Loan Applications</option>
+        <option value="documents">Verified Documents</option>
+        <option value="queries">Customer Queries</option>
+        <option value="performance">Officer Performance</option>
+        <option value="audit">Audit Logs</option>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label for="startDate" class="form-label">Start Date</label>
+      <input type="date" id="startDate" class="form-control" [(ngModel)]="startDate" name="startDate" required>
+    </div>
+
+    <div class="col-md-4">
+      <label for="endDate" class="form-label">End Date</label>
+      <input type="date" id="endDate" class="form-control" [(ngModel)]="endDate" name="endDate" required>
+    </div>
+
+    <div class="col-12 text-center mt-4">
+      <button type="submit" class="btn btn-primary px-4" [disabled]="isLoading">
+        <i class="fas fa-file-download me-2"></i>
+        {{ isLoading ? 'Generating...' : 'Generate Report' }}
+      </button>
+    </div>
+
+    <div *ngIf="errorMessage" class="col-12 text-center mt-3 text-danger">
+      {{ errorMessage }}
+    </div>
+  </form>
+</div>

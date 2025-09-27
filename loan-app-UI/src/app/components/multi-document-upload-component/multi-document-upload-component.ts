@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -6,7 +6,7 @@ import { DocumentService } from '../../services/document-service';
 import { CloudinaryService } from '../../services/cloudinary-service';
 import { Auth } from '../../services/auth';
 import { ToastService } from '../../services/toast-service';
-import { DocumentStatus } from '../../models/loan-document';
+import { DocumentStatus, LoanDocument } from '../../models/loan-document';
 
 @Component({
   selector: 'app-multi-document-upload',
@@ -18,15 +18,16 @@ import { DocumentStatus } from '../../models/loan-document';
 export class MultiDocumentUploadComponent {
   readonly documentTypes = ['PAN', 'Aadhaar', 'Passport', 'DrivingLicense'];
 
-  selectedType: string | null = null;
-  documentNumber: string = '';
-  selectedFile: File | null = null;
-  isUploading = false;
+  selectedType = signal<string | null>(null);
+  documentNumber = signal('');
+  selectedFile = signal<File | null>(null);
 
-  stagedDocuments: { type: string; number: string; file: File }[] = [];
+  stagedDocuments = signal<{ type: string; number: string; file: File }[]>([]);
+  previewModalVisible = signal(false);
+  previewModalUrl = signal<string | null>(null);
 
-  previewModalVisible = false;
-  previewModalUrl: string | null = null;
+  isUploading = signal(false);
+  uploadProgress = signal<number>(0);
 
   applicationId!: number;
 
@@ -38,48 +39,51 @@ export class MultiDocumentUploadComponent {
   onFileSelect(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files?.length) {
-      this.selectedFile = input.files[0];
+      this.selectedFile.set(input.files[0]);
     }
   }
 
   stageDocument(): void {
-    if (!this.selectedType || !this.documentNumber || !this.selectedFile) return;
+    const type = this.selectedType();
+    const number = this.documentNumber();
+    const file = this.selectedFile();
 
-    this.stagedDocuments.push({
-      type: this.selectedType,
-      number: this.documentNumber,
-      file: this.selectedFile
-    });
+    if (!type || !number || !file) return;
 
-    this.selectedType = null;
-    this.documentNumber = '';
-    this.selectedFile = null;
+    this.stagedDocuments.update(docs => [...docs, { type, number, file }]);
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.selectedType.set(null);
+    this.documentNumber.set('');
+    this.selectedFile.set(null);
   }
 
   isTypeAdded(type: string): boolean {
-    return this.stagedDocuments.some(doc => doc.type === type);
+    return this.stagedDocuments().some(doc => doc.type === type);
   }
 
   allDocumentsAdded(): boolean {
-    return this.stagedDocuments.length === this.documentTypes.length;
+    return this.stagedDocuments().length === this.documentTypes.length;
   }
 
   removeDocument(type: string): void {
-    this.stagedDocuments = this.stagedDocuments.filter(doc => doc.type !== type);
+    this.stagedDocuments.update(docs => docs.filter(doc => doc.type !== type));
   }
 
   openPreview(doc: { file: File }): void {
     const reader = new FileReader();
     reader.onload = () => {
-      this.previewModalUrl = reader.result as string;
-      this.previewModalVisible = true;
+      this.previewModalUrl.set(reader.result as string);
+      this.previewModalVisible.set(true);
     };
     reader.readAsDataURL(doc.file);
   }
 
   closePreview(): void {
-    this.previewModalVisible = false;
-    this.previewModalUrl = null;
+    this.previewModalVisible.set(false);
+    this.previewModalUrl.set(null);
   }
 
   uploadAll(): void {
@@ -88,16 +92,21 @@ export class MultiDocumentUploadComponent {
       return;
     }
 
-    this.isUploading = true;
+    this.isUploading.set(true);
     const officerId = this.auth.getUserId();
 
-    this.stagedDocuments.forEach(doc => {
+    this.stagedDocuments().forEach(doc => {
       this.cloudinary.uploadToCloudinary(doc.file).subscribe({
-        next: (url) => {
-          const payload = {
+        next: (urlOrProgress) => {
+          if (typeof urlOrProgress === 'number') {
+            this.uploadProgress.set(urlOrProgress);
+            return;
+          }
+
+          const payload: Partial<LoanDocument> = {
             applicationId: this.applicationId,
             fileName: doc.file.name,
-            filePath: url,
+            filePath: urlOrProgress,
             documentType: doc.type,
             verificationStatus: DocumentStatus.Pending,
             uploadedAt: new Date()
@@ -112,7 +121,8 @@ export class MultiDocumentUploadComponent {
       });
     });
 
-    this.isUploading = false;
-    this.stagedDocuments = [];
+    this.isUploading.set(false);
+    this.stagedDocuments.set([]);
+    this.uploadProgress.set(0);
   }
 }

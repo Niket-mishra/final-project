@@ -1,0 +1,51 @@
+<div class="officer-assignments container py-4">
+  <h3 class="text-center fw-bold mb-4">📄 Assigned Loan Applications</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading assignments...</p>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+    }
+
+    @if (applications.length === 0 && !errorMessage) {
+      <div class="text-center text-muted">No applications assigned.</div>
+    }
+
+    @if (applications.length > 0) {
+      <div class="list-group">
+        @for (app of applications; track app.applicationId) {
+          <div class="list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">Application #{{ app.applicationId }}</h5>
+              <span class="badge bg-{{ getStatusBadge(app.status) }}">
+                {{ app.status }}
+              </span>
+            </div>
+
+            <p class="mb-1 text-muted">
+              {{ app.customer?.firstName }} {{ app.customer?.lastName }}
+            </p>
+
+            <div class="mt-2 small text-secondary">
+              <div><strong>Loan Type:</strong> {{ app.loanScheme?.schemeName || '—' }}</div>
+              <div><strong>Amount:</strong> ₹{{ app.requestedAmount }}</div>
+              <div><strong>Submitted:</strong> {{ app.applicationDate | date:'mediumDate' }}</div>
+              <div><strong>Assigned:</strong> {{ app.officerAssignedDate || '—' }}</div>
+              @if (app.remarks) {
+                <div><strong>Remarks:</strong> {{ app.remarks }}</div>
+              }
+              @if (app.rejectionReason) {
+                <div><strong>Rejection Reason:</strong> {{ app.rejectionReason }}</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

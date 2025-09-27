@@ -1,0 +1,53 @@
+<div class="repayment-schedule container py-4">
+  <h3 class="text-center fw-bold mb-4">📅 Repayment Schedule</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading repayment data...</p>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Customer</th>
+              <th>Loan ID</th>
+              <th>EMI #</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Payment Date</th>
+              <th>Status</th>
+              <th>Mode</th>
+              <th>Txn ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of repaymentData; track app.applicationId) {
+              @for (repayment of app.loan?.repayments ?? []; track repayment.repaymentId) {
+                <tr>
+                  <td>{{ app.customer?.firstName }} {{ app.customer?.lastName }}</td>
+                  <td>{{ app.loan?.loanId }}</td>
+                  <td>{{ repayment.emiNumber }}</td>
+                  <td>₹{{ repayment.amount }}</td>
+                  <td>{{ repayment.dueDate | date:'mediumDate' }}</td>
+                  <td>{{ repayment.paymentDate ? (repayment.paymentDate | date:'mediumDate') : '—' }}</td>
+                  <td>
+                    <span class="badge bg-{{ getStatusColor(repayment.paymentStatus) }}">
+                      {{ repayment.paymentStatus }}
+                    </span>
+                  </td>
+                  <td>{{ repayment.paymentMode }}</td>
+                  <td>{{ repayment.transactionId }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

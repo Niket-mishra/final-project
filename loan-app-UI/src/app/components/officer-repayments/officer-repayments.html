@@ -1,0 +1,59 @@
+<div class="officer-repayments container py-4">
+  <h3 class="text-center fw-bold mb-4">💳 Officer Repayments</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading repayment records...</p>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+    }
+
+    @if (repayments.length === 0 && !errorMessage) {
+      <div class="text-center text-muted">No repayments found.</div>
+    }
+
+    @if (repayments.length > 0) {
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Loan ID</th>
+              <th>Sanction Amount</th>
+              <th>EMI #</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Paid On</th>
+              <th>Status</th>
+              <th>Mode</th>
+              <th>Txn ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (repayment of repayments; track repayment.repaymentId) {
+              <tr>
+                <td>{{ repayment.loanId }}</td>
+                <td>{{ repayment.loan?.sanctionedAmount }}</td>
+                <td>{{ repayment.emiNumber }}</td>
+                <td>₹{{ repayment.amount }}</td>
+                <td>{{ repayment.dueDate | date:'mediumDate' }}</td>
+                <td>{{ repayment.paymentDate ? (repayment.paymentDate | date:'mediumDate') : '—' }}</td>
+                <td>
+                  <span class="badge bg-{{ getStatusBadge(repayment.paymentStatus) }}">
+                    {{ repayment.paymentStatus }}
+                  </span>
+                </td>
+                <td>{{ repayment.paymentMode }}</td>
+                <td>{{ repayment.transactionId }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+
+</div>

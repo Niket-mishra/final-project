@@ -1,0 +1,43 @@
+<div class="loan-schemes-officer container py-4">
+  <h3 class="text-center fw-bold mb-4">🏦 Available Loan Schemes</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading schemes...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && !errorMessage && schemes.length === 0) {
+    <div class="text-center text-muted">No loan schemes available.</div>
+  }
+
+  @if (!isLoading && schemes.length > 0) {
+    <div class="row g-3">
+      @for (scheme of schemes; track scheme.schemeId) {
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+              <h5 class="fw-bold">{{ scheme.schemeName }}</h5>
+              <p class="text-muted">
+                {{ scheme.eligibilityCriteria}}
+              </p>
+              <p><strong>Amount Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</p>
+              <p><strong>Interest Rate:</strong> {{ scheme.interestRate }}%</p>
+              <p><strong>Tenure:</strong> {{ scheme.tenureMonths }} months</p>
+              <p><strong>Status:</strong>
+                <span class="badge bg-{{ scheme.isActive ? 'success' : 'secondary' }}">
+                  {{ scheme.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

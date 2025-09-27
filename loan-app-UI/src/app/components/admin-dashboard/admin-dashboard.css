@@ -1,14 +1,37 @@
 .admin-dashboard {
-  max-width: 900px;
+  max-width: 1200px;
   margin: auto;
-  padding: 1rem;
+  padding: 2rem;
 }
 
 .stat-card {
-  transition: transform 0.2s ease;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
-  transform: scale(1.02);
-  background-color: #f8f9fa;
+  transform: translateY(-6px);
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.6rem 1.4rem;
+}
+
+p-chart {
+  display: block;
+  width: 100%;
+  max-height: 400px;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #34495e;
 }

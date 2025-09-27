@@ -1,0 +1,14 @@
+.report-generator {
+  max-width: 900px;
+  margin: auto;
+}
+
+form .form-label {
+  font-weight: 600;
+}
+
+button[type="submit"] {
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+}

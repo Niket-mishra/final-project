@@ -1,0 +1,57 @@
+<div class="workload-meter">
+  <h3 class="text-center fw-bold mb-4">📊 Officer Workload Overview</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading workload data...</p>
+    </div>
+  } @else {
+    <div class="row g-4">
+      <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title">Assigned Applications</h6>
+            <div class="progress">
+              <div class="progress-bar bg-primary" role="progressbar"
+                   [style.width.%]="assignedApplications"
+                   aria-valuenow="{{assignedApplications}}" aria-valuemin="0" aria-valuemax="100">
+                {{ assignedApplications }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-sm-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title">Verified Documents</h6>
+            <div class="progress">
+              <div class="progress-bar bg-success" role="progressbar"
+                   [style.width.%]="verifiedDocuments"
+                   aria-valuenow="{{verifiedDocuments}}" aria-valuemin="0" aria-valuemax="100">
+                {{ verifiedDocuments }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 col-sm-12">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title">Handled Queries</h6>
+            <div class="progress">
+              <div class="progress-bar bg-warning" role="progressbar"
+                   [style.width.%]="handledQueries * 10"
+                   aria-valuenow="{{handledQueries}}" aria-valuemin="0" aria-valuemax="100">
+                {{ handledQueries }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

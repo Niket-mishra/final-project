@@ -7,24 +7,56 @@
       <p class="mt-2">Loading dashboard...</p>
     </div>
   } @else {
-    <div class="row text-center">
-  @for (stat of [
-    { label: 'Total Applications', value: stats.totalApplications },
-    { label: 'Pending', value: stats.pending },
-    { label: 'Approved', value: stats.approved },
-    { label: 'Rejected', value: stats.rejected },
-    { label: 'Disbursed', value: stats.disbursed },
-    { label: 'Loan Schemes', value: stats.totalSchemes }
-  ]; track stat.label) {
-    <div class="col-md-4 mb-3">
-      <div class="card shadow-sm stat-card">
-        <div class="card-body">
-          <h6 class="fw-bold">{{ stat.label }}</h6>
-          <p class="display-6 text-primary">{{ stat.value }}</p>
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4">
+      @for (stat of [
+        { label: 'Total Applications', value: stats.totalApplications, color: 'primary', icon: '📄' },
+        { label: 'Pending', value: stats.pending, color: 'warning', icon: '⏳' },
+        { label: 'Approved', value: stats.approved, color: 'success', icon: '✅' },
+        { label: 'Rejected', value: stats.rejected, color: 'danger', icon: '❌' },
+        { label: 'Disbursed', value: stats.disbursed, color: 'info', icon: '💸' },
+        { label: 'Loan Schemes', value: stats.totalSchemes, color: 'secondary', icon: '📊' },
+        { label: 'Unassigned Applications', value: stats.unassigned, color: 'dark', icon: '🎯' }
+      ]; track stat.label) {
+        <div class="col-md-4">
+          <div class="card stat-card bg-{{ stat.color }} text-white shadow-sm">
+            <div class="card-body text-center">
+              <div class="fs-2 mb-2">{{ stat.icon }}</div>
+              <h6 class="fw-bold">{{ stat.label }}</h6>
+              <p class="display-6">{{ stat.value }}</p>
+            </div>
+          </div>
         </div>
+      }
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <p-chart type="pie" [data]="pieChartData"></p-chart>
+      </div>
+      <div class="col-md-6">
+        <p-chart type="bar" [data]="barChartData"></p-chart>
       </div>
     </div>
-  }
-</div>
+
+    <!-- Recent Activity Feed -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-bold">🕵️ Recent Activity</div>
+      <ul class="list-group list-group-flush">
+        @for (log of auditLogs; track log.timestamp) {
+          <li class="list-group-item">
+            <strong>{{ log.action }}</strong> by {{ log.actor }} on {{ log.timestamp | date:'short' }}
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="text-center">
+      <a class="btn btn-outline-primary me-2" [routerLink]="['/admin/loan-schemes']">Create Scheme</a>
+      <a class="btn btn-outline-success me-2" [routerLink]="['/applications/list']">Assign Officer</a>
+      <a class="btn btn-outline-dark" [routerLink]="['/admin/reports']">View Reports</a>
+    </div>
   }
 </div>

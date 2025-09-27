@@ -1,0 +1,64 @@
+<div class="officer-documents container py-4">
+  <h3 class="text-center fw-bold mb-4">📁 Assigned Application Documents</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading documents...</p>
+    </div>
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+    }
+
+    @if (documents.length === 0 && !errorMessage) {
+      <div class="text-center text-muted">No documents found for assigned applications.</div>
+    }
+
+    @if (documents.length > 0) {
+      <div class="list-group">
+        @for (doc of documents; track doc.documentId) {
+          <div class="list-group-item flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">{{ doc.documentType }}</h5>
+              <span class="badge bg-{{ getStatusBadge(doc.verificationStatus) }}">
+                {{ doc.verificationStatus }}
+              </span>
+            </div>
+
+            <p class="mb-1 text-muted">{{ doc.fileName }}</p>
+
+            <div class="mt-2 small text-secondary">
+              <div><strong>Loan ID:</strong> {{ doc.applicationId }}</div>
+              <div><strong>Uploaded:</strong> {{ doc.uploadedAt | date:'mediumDate' }}</div>
+              <div><strong>Verified At:</strong> {{ doc.verificationDate || '—' }}</div>
+              <div><strong>Verified By:</strong> {{ doc.verifiedByOfficer?.user?.username || '—' }}</div>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Change Status</label>
+              <select class="form-select w-auto"
+                      [(ngModel)]="doc.verificationStatus"
+                      (change)="updateStatus(doc, doc.verificationStatus)">
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Remarks</label>
+              <textarea class="form-control"
+                        [(ngModel)]="doc.verificationRemarks"
+                        (blur)="updateRemarks(doc)"
+                        rows="2"
+                        placeholder="Add verification remarks..."></textarea>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+
+</div>
