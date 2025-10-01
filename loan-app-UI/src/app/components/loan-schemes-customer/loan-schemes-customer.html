@@ -18,22 +18,30 @@
 
   @if (!isLoading && schemes.length > 0) {
     <div class="row g-3">
-      @for (scheme of schemes; track scheme.schemeId) {
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <h5 class="fw-bold">{{ scheme.schemeName }}</h5>
-              <p class="text-muted">{{ scheme.eligibilityCriteria }}</p>
-              <p><strong>Loan Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</p>
-              <p><strong>Interest Rate:</strong> {{ scheme.interestRate }}%</p>
-              <p><strong>Tenure:</strong> {{ scheme.tenureMonths }} months</p>
-              <button class="btn btn-outline-primary w-100 mt-3">
-                Apply Now
-              </button>
-            </div>
-          </div>
-        </div>
-      }
+  @for (scheme of schemes; track scheme.schemeId) {
+   <div class="col-md-6">
+  <div class="card loan-card h-100 border-0 shadow">
+    <div class="card-body">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="fw-bold mb-0">📄 {{ scheme.schemeName }}</h5>
+        <span class="badge bg-success">{{ scheme.interestRate }}% APR</span>
+      </div>
+      <p class="text-muted mb-2">{{ scheme.eligibilityCriteria }}</p>
+      <ul class="list-unstyled mb-3">
+        <li><strong>💰 Loan Range:</strong> ₹{{ scheme.minAmount }} – ₹{{ scheme.maxAmount }}</li>
+        <li><strong>⏳ Tenure:</strong> {{ scheme.tenureMonths }} months</li>
+      </ul>
+<button
+  class="btn btn-outline-primary w-100 mt-3"
+  [routerLink]="['/customer/apply-loan']"
+  [queryParams]="{ schemeId: scheme.schemeId }"
+>
+  🚀 Apply Now
+</button>
     </div>
+  </div>
+</div>
+  }
+</div>
   }
 </div>

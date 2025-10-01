@@ -1,23 +1,125 @@
-<div class="modal fade show d-block" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Customer Profile</h5>
-        <button type="button" class="btn-close" (click)="closeProfile()"></button>
-      </div>
-      <div class="modal-body">
-        <p><strong>Name:</strong> {{ customer.firstName }} {{ customer.lastName }}</p>
-        <p><strong>Gender:</strong> {{ customer.gender }}</p>
-        <p><strong>City:</strong> {{ customer.city }}</p>
-        <p><strong>Occupation:</strong> {{ customer.occupation }}</p>
-        <p><strong>Annual Income:</strong> ₹{{ customer.annualIncome }}</p>
-        <p><strong>Credit Score:</strong> {{ customer.creditScore }}</p>
-        <p><strong>Status:</strong> <span class="badge bg-{{ getStatusColor(customer.verificationStatus) }}">{{ customer.verificationStatus }}</span></p>
-        <p><strong>PAN:</strong> {{ customer.panNumber }}</p>
-        <p><strong>Aadhaar:</strong> {{ customer.aadhaarNumber }}</p>
-        <p><strong>Document:</strong> {{ customer.documentType }} – {{ customer.documentPath }}</p>
-      </div>
-    </div>
-  </div>
+<div class="profile-container" role="region" aria-label="Customer profile">
+	@if (loading()) {
+		<div class="loader" aria-live="polite">⏳ Loading profile…</div>
+	}
+	@if (error()) {
+		<div class="alert alert-danger text-center rounded-4 shadow-sm" role="alert">
+			❌ Couldn’t load customer profile. <span class="visually-hidden">Error:</span> {{ error() }}
+		</div>
+	}
+	@if (!loading() && !error() && customer()) {
+		<div class="profile-card" tabindex="0">
+			<!-- Left: Avatar & Name -->
+			<div class="profile-left">
+				<div class="avatar" aria-hidden="true">
+					 {{customer()!.firstName[0] || 'U'}}  {{customer()!.lastName[0] || '' }}
+				</div>
+				<h3 class="profile-name" [attr.aria-label]="'Name ' + (customer()!.firstName || '') + ' ' + (customer()!.lastName || '')">
+					 {{customer()!.firstName }} {{ customer()!.lastName }}
+				</h3>
+				<span
+					class="badge status-badge"
+					[ngClass]="'bg-' + getStatusColor(customer()!.verificationStatus)"
+					aria-live="polite"
+				>
+					 {{customer()!.verificationStatus }}
+				</span>
+			</div>
+
+			<!-- Right: Info -->
+			<div class="profile-right">
+				<div class="info-grid">
+					<div class="info-item">
+						<i class="bi bi-gender-ambiguous" aria-hidden="true"></i>
+						<span><b>Gender:</b> {{customer()!.gender }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-geo-alt" aria-hidden="true"></i>
+						<span><b>City:</b> {{customer()!.city || '—' }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-briefcase" aria-hidden="true"></i>
+						<span><b>Occupation:</b> {{customer()!.occupation || '—' }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-cash-coin" aria-hidden="true"></i>
+						<span><b>Annual Income: </b>₹ {{customer()!.annualIncome | number:'1.0-0'}} </span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-bar-chart-line" aria-hidden="true"></i>
+						<span><b>Credit Score: </b> {{customer()!.creditScore || '—' }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-credit-card" aria-hidden="true"></i>
+						<span><b>PAN:  </b>{{customer()!.panMasked ?? '—' }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-person-vcard" aria-hidden="true"></i>
+						<span><b>Aadhaar: </b> {{customer()!.aadhaarMasked ?? '—' }}</span>
+					</div>
+
+					<div class="info-item">
+						<i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+						<span><b> {{customer()!.documentType}} :</b></span>
+						@if (customer()!.downloadUrl) {
+							<a
+								[href]="customer()!.downloadUrl!"
+								target="_blank"
+								rel="noopener"
+								class="btn btn-sm btn-outline-primary ms-2"
+								aria-label="Download customer document"
+							>⬇ Download</a>
+						}
+					</div>
+				</div>
+
+				<!-- Footer -->
+				<div class="profile-footer">
+					<small><strong>DOB:</strong> {{customer()!.dateOfBirth | date:'longDate'}}  </small>
+					<small><strong>Created:</strong>  {{customer()!.createdAt | date:'medium'}} </small>
+					<small><strong>Updated:</strong> {{ customer()!.updatedAt ? (customer()!.updatedAt | date:'medium') : '—' }}</small>
+					<small><strong>Verified:</strong> {{ customer()!.verifiedAt ? (customer()!.verifiedAt | date:'medium') : '—' }} </small>
+				</div>
+
+				<div class="profile-actions">
+					<button type="button" class="btn btn-outline-secondary" (click)="closeProfile()" aria-label="Close profile">
+						Close
+					</button>
+				</div>
+			</div>
+		</div>
+	}
+
+	<!-- Skeleton state if needed -->
+	@if (loading()) {
+		<div class="profile-card skeleton">
+			<div class="profile-left">
+				<div class="avatar shimmer"></div>
+				<div class="line shimmer" style="width: 70%"></div>
+				<div class="badge shimmer" style="width: 60%"></div>
+			</div>
+			<div class="profile-right">
+				<div class="info-grid">
+					@for (i of [1,2,3,4,5,6,7,8]; track i) {
+						<div class="info-item">
+							<div class="icon shimmer"></div>
+							<div class="line shimmer"></div>
+						</div>
+					}
+				</div>
+				<div class="profile-footer">
+					<div class="line shimmer" style="width: 30%"></div>
+					<div class="line shimmer" style="width: 30%"></div>
+					<div class="line shimmer" style="width: 30%"></div>
+					<div class="line shimmer" style="width: 30%"></div>
+				</div>
+			</div>
+		</div>
+	}
 </div>
-<div class="modal-backdrop fade show"></div>

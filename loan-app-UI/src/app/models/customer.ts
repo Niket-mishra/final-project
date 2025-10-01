@@ -25,26 +25,26 @@ export interface Customer {
   customerId: number;
   userId: number;
 
-  dateOfBirth: Date | null;
-  address: string | null;
-  creditScore: number | null;
-  verifiedAt?: Date | null;
+  dateOfBirth: Date ;
+  address: string ;
+  creditScore: number ;
+  verifiedAt?: Date ;
 
   createdAt: Date;
-  updatedAt?: Date | null;
+  updatedAt?: Date ;
 
-  firstName: string | null;
-  lastName: string | null;
-  gender: Gender | null;
-  city: string | null;
-  occupation: string | null;
-  annualIncome: number | null;
+  firstName: string ;
+  lastName: string ;
+  gender: Gender;
+  city: string;
+  occupation: string;
+  annualIncome: number;
 
-  panNumber: string | null;
-  aadhaarNumber: string | null;
-  documentType: DocumentType | null;
-  documentPath: string | null;
-  verificationStatus: VerificationStatus | null;
+  panNumber: string;
+  aadhaarNumber: string ;
+  documentType: DocumentType;
+  documentPath: string ;
+  verificationStatus: VerificationStatus;
 
   user?: User;
   loanApplications?: LoanApplication[];

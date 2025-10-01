@@ -1,38 +1,98 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" [routerLink]="['/customer/dashboard']">
-      <i class="fas fa-landmark me-2"></i>Loan Portal
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCustomer">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="customer-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar shadow-sm" [class.collapsed]="isCollapsed" [class.show]="isMobileOpen">
+    <div class="sidebar-header text-center py-3">
+      <a [routerLink]="['/customer/dashboard']" class="brand fw-bold text-primary">
+        <i class="fas fa-landmark me-2"></i> <span *ngIf="!isCollapsed">Loan Portal</span>
+      </a>
+    </div>
 
-    <div class="collapse navbar-collapse" id="navbarCustomer">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/dashboard']">Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/apply-loan']">Apply Loan</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/loans']">My Loans</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/repayments']">Repayments</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/loan-schemes']">Loan Schemes</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/queries']">Raise Query</a></li>
-        <li class="nav-item"><a class="nav-link" [routerLink]="['/customer/notifications']">Notifications</a></li>
-      </ul>
+    <ul class="nav flex-column mt-3">
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/dashboard" routerLinkActive="active">
+          <i class="fas fa-home me-2"></i> <span *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/apply-loan" routerLinkActive="active">
+          <i class="fas fa-plus-circle me-2"></i> <span *ngIf="!isCollapsed">Apply Loan</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/my-loans" routerLinkActive="active">
+          <i class="fas fa-file-invoice-dollar me-2"></i> <span *ngIf="!isCollapsed">My Loans</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/repayments" routerLinkActive="active">
+          <i class="fas fa-credit-card me-2"></i> <span *ngIf="!isCollapsed">Repayments</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/loan-schemes" routerLinkActive="active">
+          <i class="fas fa-list-alt me-2"></i> <span *ngIf="!isCollapsed">Loan Schemes</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/queries" routerLinkActive="active">
+          <i class="fas fa-question-circle me-2"></i> <span *ngIf="!isCollapsed">Raise Query</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/customer/notifications" routerLinkActive="active">
+          <i class="fas fa-bell me-2"></i> <span *ngIf="!isCollapsed">Notifications</span>
+        </a>
+      </li>
+    </ul>
+  </aside>
 
-      <!-- Profile Dropdown -->
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-1"></i>
-            {{ authService.getUserName() }} (Customer)
+  <!-- Topbar -->
+  <header class="topbar shadow-sm d-flex justify-content-between align-items-center px-3">
+    <div class="d-flex align-items-center gap-2">
+      <!-- Sidebar Toggle -->
+      <button class="btn btn-sm btn-outline-primary" (click)="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Breadcrumb -->
+      <nav aria-label="breadcrumb" class="ms-2">
+        <ol class="breadcrumb mb-0">
+          <li *ngFor="let crumb of breadcrumbs; let last = last"
+              class="breadcrumb-item"
+              [class.active]="last"
+              [attr.aria-current]="last ? 'page' : null">
+            <a *ngIf="!last" [routerLink]="crumb.url">{{ crumb.label }}</a>
+            <span *ngIf="last">{{ crumb.label }}</span>
+          </li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Profile Dropdown -->
+    <div class="dropdown">
+      <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
+         href="javascript:void(0)" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle fs-5 me-2"></i>
+        <span>{{ authService.getUserName() }} (Customer)</span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li>
+          <a class="dropdown-item" routerLink="/customer/profile">
+            <i class="fas fa-user me-2"></i> Profile
           </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" [routerLink]="['/customer/profile']"><i class="fas fa-user me-2"></i>Profile</a></li>
-            <li><a class="dropdown-item" [routerLink]="['/customer/settings']"><i class="fas fa-cog me-2"></i>Settings</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" (click)="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-          </ul>
+        </li>
+        <li>
+          <a class="dropdown-item" routerLink="/customer/settings">
+            <i class="fas fa-cog me-2"></i> Settings
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item text-danger" href="#" (click)="logout()">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+          </a>
         </li>
       </ul>
     </div>
-  </div>
-</nav>
+  </header>
+</div>

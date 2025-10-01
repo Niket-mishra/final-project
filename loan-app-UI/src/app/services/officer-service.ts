@@ -10,7 +10,7 @@ import { EmailNotification } from '../models/email-notification';
 
 @Injectable({ providedIn: 'root' })
 export class OfficerService {
-  private readonly apiUrl = 'https://your-api.com/api/officers';
+  private readonly apiUrl = 'https://localhost:7262/api/LoanOfficer';
 
   constructor(private http: HttpClient) {}
 

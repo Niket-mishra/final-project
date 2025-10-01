@@ -1,0 +1,46 @@
+.settings-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header h2 {
+  font-weight: 700;
+}
+
+.header p {
+  font-size: 0.9rem;
+}
+
+.card {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.form-group label {
+  font-weight: 500;
+}
+
+.form-check-label {
+  font-weight: 400;
+}
+
+button.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+}
+
+button.btn-primary:hover {
+  opacity: 0.9;
+}

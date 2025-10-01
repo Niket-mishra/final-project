@@ -1,12 +1,2 @@
-<!-- Role-Based Navigation -->
-@if (authService.isLoggedInSignal()) {
-  @if (authService.getUserRole() === 'admin') {
-    <app-admin-navbar></app-admin-navbar>
-  } @else if (authService.getUserRole() === 'officer') {
-    <app-officer-navbar></app-officer-navbar>
-  } @else if (authService.getUserRole() === 'customer') {
-    <app-customer-navbar></app-customer-navbar>
-  }
-}
-<!-- Main Content -->
+
 <router-outlet></router-outlet>

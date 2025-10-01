@@ -8,7 +8,7 @@ import { CloudinaryService } from '../../services/cloudinary-service';
 @Component({
   selector: 'app-documents',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule],
   templateUrl: './documents.html',
   styleUrls: ['./documents.css']
 })

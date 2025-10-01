@@ -5,7 +5,7 @@ import { NPA } from '../models/npa';
 
 @Injectable({ providedIn: 'root' })
 export class NpaService {
-  private readonly apiUrl = 'https://your-api.com/api/npa';
+  private readonly apiUrl = 'https://localhost:7262/api/npa';
 
   constructor(private http: HttpClient) {}
 

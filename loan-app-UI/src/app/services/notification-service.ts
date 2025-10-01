@@ -5,7 +5,7 @@ import { EmailNotification } from '../models/email-notification';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly apiUrl = 'https://your-api.com/api/notifications';
+  private readonly apiUrl = 'https://localhost:7262/api/notifications';
 
   constructor(private http: HttpClient) {}
 

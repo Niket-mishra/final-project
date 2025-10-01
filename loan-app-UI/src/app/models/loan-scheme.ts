@@ -2,6 +2,8 @@ import { LoanAdmin } from "./loan-admin";
 import { LoanApplication } from "./loan-application";
 
 export interface LoanScheme {
+  maxTenure: number;
+  minTenure: number;
   schemeId: number;
   schemeName: string;
   interestRate: number;

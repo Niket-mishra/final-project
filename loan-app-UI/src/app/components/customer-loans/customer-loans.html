@@ -1,1 +1,35 @@
-<p>customer-loans works!</p>
+<div class="customer-loans container py-4">
+  <h3 class="text-center fw-bold mb-4">📄 My Loan Applications</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading your loans...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && loans.length === 0 && !errorMessage) {
+    <div class="text-center text-muted">You haven’t applied for any loans yet.</div>
+  }
+
+  @if (!isLoading && loans.length > 0) {
+    <div class="row g-3">
+      @for (loan of loans; track loan.applicationId) {
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h5 class="fw-bold">{{ loan.loanApplication?.loanScheme?.schemeName}}</h5>
+              <p><strong>Amount:</strong> ₹{{ loan.sanctionedAmount }}</p>
+              <p><strong>Status:</strong> {{ loan.loanStatus }}</p>
+              <p><strong>Applied On:</strong> {{ loan.disbursementDate| date:'mediumDate' }}</p>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

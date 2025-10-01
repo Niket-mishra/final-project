@@ -7,7 +7,7 @@ import { Report } from '../models/report'; // ✅ Import your Report model
   providedIn: 'root'
 })
 export class ReportService {
-  private readonly apiUrl = 'https://your-api.com/api/reports'; // ✅ Set your actual endpoint
+  private readonly apiUrl = 'https://localhost:7262/api/reports'; // ✅ Set your actual endpoint
 
   constructor(private http: HttpClient) {}
 

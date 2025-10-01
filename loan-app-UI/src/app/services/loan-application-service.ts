@@ -7,7 +7,7 @@ import { ApplicationSummary } from '../models/application-summary';
 @Injectable({ providedIn: 'root' })
 export class LoanApplicationService {
  
-  private readonly apiUrl = 'https://your-api-url.com/api/loan-applications';
+  private readonly apiUrl = 'https://localhost:7262/api/loan-applications';
 
   constructor(private http: HttpClient) {}
 

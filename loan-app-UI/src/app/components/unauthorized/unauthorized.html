@@ -1,8 +1,12 @@
 <div class="unauthorized-container text-center">
-  <h2 class="fw-bold text-danger mb-3">🚫 Access Denied</h2>
+  <div class="unauthorized-emoji">🚫</div>
+  <h2 class="fw-bold text-danger mb-3">Access Denied</h2>
   <p class="text-muted mb-4">
     You don’t have permission to view this page.<br />
     This section is restricted to authorized roles only.
   </p>
-  <button class="btn btn-primary" (click)="goHome()">Go to Home</button>
+  <button class="btn btn-gradient" (click)="goHome()">Go to Dashboard</button>
+  <div class="unauthorized-footer mt-3">
+    <small>Need help? Contact <a href="mailto:niketmishra436@gmail.com">support</a></small>
+  </div>
 </div>

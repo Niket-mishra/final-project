@@ -1,141 +1,338 @@
-<div class="container py-5 d-flex align-items-center justify-content-center min-vh-100 bg-gradient">
-  <div class="card shadow-lg border-0 register-card animate__animated animate__fadeInDown">
-    <div class="card-body p-5">
-      <h2 class="text-center mb-4 fw-bold">📝 Register</h2>
-      <div class="mb-4 text-center">
-  <span *ngFor="let s of [1,2,3,4]" class="step-dot" [class.active]="step === s"></span>
-</div>
+    <div class="register-wrapper">
+      <!-- Background Decorations -->
+      <div class="bg-decoration decoration-1"></div>
+      <div class="bg-decoration decoration-2"></div>
+      <div class="bg-decoration decoration-3"></div>
 
-      <!-- Step 1: Account Info -->
-      @if (step === 1) {
-        <form [formGroup]="accountForm" (ngSubmit)="nextStep()" novalidate class="" >
-          <div class="form-floating mb-3" style="width: 328px;">
-            <input type="email" id="email" class="form-control" formControlName="email" placeholder="Email" />
-            <label for="email">Email</label>
-          </div>
-          <div class="form-floating mb-3">
-            <input type="password" id="password" class="form-control" formControlName="password" placeholder="Password" />
-            <label for="password">Password</label>
-          </div>
-          <div class="form-floating mb-3">
-            <input type="password" id="confirmPassword" class="form-control"
-                formControlName="confirmPassword" placeholder="Confirm Password" />
-             <label for="confirmPassword">Confirm Password</label>
-         </div>
-            <div *ngIf="accountForm.errors?.['passwordMismatch'] && accountForm.touched" class="text-danger mb-3">
-                 Passwords do not match.
+      <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100 py-5">
+          <div class="col-lg-5 col-md-7 col-sm-9">
+            
+            <!-- Registration Card -->
+            <div class="register-card" [class.step-2]="step === 2" [class.step-3]="step === 3">
+              <div class="card-inner">
+                
+                <!-- Header -->
+                <div class="register-header text-center mb-4">
+                  <div class="icon-wrapper mb-3">
+                    <div class="icon-circle">
+                      <span class="icon">{{ step === 3 ? '🎉' : '✨' }}</span>
+                    </div>
+                  </div>
+                  <h2 class="fw-bold mb-2">
+                    {{ step === 1 ? 'Create Account' : step === 2 ? 'Personal Details' : 'Welcome Aboard!' }}
+                  </h2>
+                  <p class="text-muted small">
+                    {{ step === 1 ? 'Start your journey with us' : 
+                       step === 2 ? 'Tell us more about yourself' : 
+                       'Your account is ready!' }}
+                  </p>
+                </div>
+
+                <!-- Progress Steps -->
+                <div class="progress-steps mb-4">
+                  <div class="step-container">
+                    <div class="step-line" [class.active]="step >= 2"></div>
+                    <div class="step-line step-line-2" [class.active]="step >= 3"></div>
+                    
+                    <div class="step-item" [class.active]="step >= 1" [class.completed]="step > 1">
+                      <div class="step-number">
+                        <span *ngIf="step <= 1">1</span>
+                        <span *ngIf="step > 1">✓</span>
+                      </div>
+                      <span class="step-label">Account</span>
+                    </div>
+                    
+                    <div class="step-item" [class.active]="step >= 2" [class.completed]="step > 2">
+                      <div class="step-number">
+                        <span *ngIf="step <= 2">2</span>
+                        <span *ngIf="step > 2">✓</span>
+                      </div>
+                      <span class="step-label">Details</span>
+                    </div>
+                    
+                    <div class="step-item" [class.active]="step >= 3">
+                      <div class="step-number">3</div>
+                      <span class="step-label">Done</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Step 1: Account Information -->
+                @if (step === 1) {
+                  <form [formGroup]="accountForm" (ngSubmit)="nextStep()" class="form-content">
+                    
+                    <div class="form-group">
+                      <label for="username" class="form-label">
+                        <i class="icon-sm">👤</i> Username
+                      </label>
+                      <input 
+                        type="text" 
+                        id="username" 
+                        class="form-control" 
+                        formControlName="username" 
+                        placeholder="Choose a username"
+                        [class.is-invalid]="accountForm.get('username')?.invalid && accountForm.get('username')?.touched"
+                        [class.is-valid]="accountForm.get('username')?.valid && accountForm.get('username')?.touched"
+                      />
+                      @if (accountForm.get('username')?.invalid && accountForm.get('username')?.touched) {
+                        <div class="invalid-feedback">Username must be at least 3 characters</div>
+                      }
+                    </div>
+
+                    <div class="form-group">
+                      <label for="email" class="form-label">
+                        <i class="icon-sm">📧</i> Email Address
+                      </label>
+                      <input 
+                        type="email" 
+                        id="email" 
+                        class="form-control" 
+                        formControlName="email" 
+                        placeholder="your@email.com"
+                        [class.is-invalid]="accountForm.get('email')?.invalid && accountForm.get('email')?.touched"
+                        [class.is-valid]="accountForm.get('email')?.valid && accountForm.get('email')?.touched"
+                      />
+                      @if (accountForm.get('email')?.invalid && accountForm.get('email')?.touched) {
+                        <div class="invalid-feedback">Please enter a valid email</div>
+                      }
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="password" class="form-label">
+                            <i class="icon-sm">🔒</i> Password
+                          </label>
+                          <input 
+                            type="password" 
+                            id="password" 
+                            class="form-control" 
+                            formControlName="password" 
+                            placeholder="••••••••"
+                            [class.is-invalid]="accountForm.get('password')?.invalid && accountForm.get('password')?.touched"
+                            [class.is-valid]="accountForm.get('password')?.valid && accountForm.get('password')?.touched"
+                          />
+                          @if (accountForm.get('password')?.invalid && accountForm.get('password')?.touched) {
+                            <div class="invalid-feedback">Min 6 characters</div>
+                          }
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="confirmPassword" class="form-label">
+                            <i class="icon-sm">🔐</i> Confirm
+                          </label>
+                          <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            class="form-control" 
+                            formControlName="confirmPassword" 
+                            placeholder="••••••••"
+                            [class.is-invalid]="accountForm.errors?.['passwordMismatch'] && accountForm.get('confirmPassword')?.touched"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    @if (accountForm.errors?.['passwordMismatch'] && accountForm.touched) {
+                      <div class="alert alert-warning py-2 small">
+                        ⚠️ Passwords do not match
+                      </div>
+                    }
+
+                    <div class="form-group">
+                      <label for="phoneNumber" class="form-label">
+                        <i class="icon-sm">📱</i> Phone Number
+                      </label>
+                      <input 
+                        type="tel" 
+                        id="phoneNumber" 
+                        class="form-control" 
+                        formControlName="phoneNumber" 
+                        placeholder="+1 (555) 000-0000"
+                      />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-3" [disabled]="accountForm.invalid">
+                      Continue
+                      <span class="btn-icon">→</span>
+                    </button>
+
+                    <div class="text-center mt-3">
+                      <small class="text-muted">
+                        Already have an account? 
+                        <a routerLink="/login" class="text-primary fw-semibold text-decoration-none">Sign in</a>
+                      </small>
+                    </div>
+                  </form>
+                }
+
+                <!-- Step 2: Personal Details -->
+                @if (step === 2 && role === 'Customer') {
+                  <form [formGroup]="detailsForm" (ngSubmit)="onSubmit()" class="form-content">
+                    
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="firstName" class="form-label">First Name</label>
+                          <input 
+                            type="text" 
+                            id="firstName" 
+                            class="form-control" 
+                            formControlName="firstName" 
+                            placeholder="John"
+                            [class.is-invalid]="detailsForm.get('firstName')?.invalid && detailsForm.get('firstName')?.touched"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="lastName" class="form-label">Last Name</label>
+                          <input 
+                            type="text" 
+                            id="lastName" 
+                            class="form-control" 
+                            formControlName="lastName" 
+                            placeholder="Doe"
+                            [class.is-invalid]="detailsForm.get('lastName')?.invalid && detailsForm.get('lastName')?.touched"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="dob" class="form-label">
+                            <i class="icon-sm">🎂</i> Date of Birth
+                          </label>
+                          <input 
+                            type="date" 
+                            id="dob" 
+                            class="form-control" 
+                            formControlName="dateOfBirth"
+                            [class.is-invalid]="detailsForm.get('dateOfBirth')?.invalid && detailsForm.get('dateOfBirth')?.touched"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="gender" class="form-label">
+                            <i class="icon-sm">👥</i> Gender
+                          </label>
+                          <select id="gender" class="form-select" formControlName="gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="city" class="form-label">
+                            <i class="icon-sm">🏙️</i> City
+                          </label>
+                          <input 
+                            type="text" 
+                            id="city" 
+                            class="form-control" 
+                            formControlName="city" 
+                            placeholder="New York"
+                          />
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="occupation" class="form-label">
+                            <i class="icon-sm">💼</i> Occupation
+                          </label>
+                          <input 
+                            type="text" 
+                            id="occupation" 
+                            class="form-control" 
+                            formControlName="occupation" 
+                            placeholder="Software Engineer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="income" class="form-label">
+                        <i class="icon-sm">💰</i> Annual Income
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">₹</span>
+                        <input 
+                          type="number" 
+                          id="income" 
+                          class="form-control" 
+                          formControlName="annualIncome" 
+                          placeholder="500000"
+                        />
+                      </div>
+                    </div>
+
+                    @if (registerError) {
+                      <div class="alert alert-danger py-2">
+                        <strong>⚠️ Error:</strong> {{ registerError }}
+                      </div>
+                    }
+
+                    <div class="button-group mt-4">
+                      <button type="button" class="btn btn-outline-secondary" (click)="prevStep()">
+                        <span class="btn-icon">←</span>
+                        Back
+                      </button>
+                      <button type="submit" class="btn btn-primary" [disabled]="detailsForm.invalid || isSubmitting">
+                        @if (isSubmitting) {
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                          Creating...
+                        } @else {
+                          Complete Registration
+                          <span class="btn-icon">✓</span>
+                        }
+                      </button>
+                    </div>
+                  </form>
+                }
+
+                <!-- Step 3: Success -->
+                @if (step === 3) {
+                  <div class="success-content text-center">
+                    <div class="success-animation mb-4">
+                      <div class="checkmark-circle">
+                        <div class="checkmark"></div>
+                      </div>
+                    </div>
+                    
+                    <h3 class="fw-bold mb-2">Account Created! 🎉</h3>
+                    <p class="text-muted mb-4">
+                      Welcome aboard! Your account has been successfully created and you're ready to get started.
+                    </p>
+                    
+                    <a [routerLink]="[dashboardRoute]" class="btn btn-primary btn-lg px-5">
+                      Go to Dashboard
+                      <span class="btn-icon">→</span>
+                    </a>
+
+                    <div class="mt-4 pt-4 border-top">
+                      <small class="text-muted">
+                        Need help? <a href="#" class="text-primary text-decoration-none">Contact Support</a>
+                      </small>
+                    </div>
+                  </div>
+                }
+
+              </div>
             </div>
 
-
-          <div class="form-floating mb-3">
-            <input type="text" id="phoneNumber" class="form-control" formControlName="phoneNumber" placeholder="Phone Number" />
-            <label for="phoneNumber">Phone Number</label>
           </div>
-          <button type="submit" class="btn btn-dark w-100">Next →</button>
-        </form>
-      }
-
-      <!-- Step 2: Personal Details -->
-      @if (step === 2 && role === 'Customer') {
-        <form [formGroup]="detailsForm" (ngSubmit)="nextStep()" novalidate style="width: 328px;" class="row g-2">
-          <div class="form-floating" style="width: 164px;">
-            <input type="text" id="firstName" class="form-control" formControlName="firstName" placeholder="First Name" />
-            <label for="firstName">First Name</label>
-          </div>
-          <div class="form-floating" style="width: 164px;">
-            <input type="text" id="lastName" class="form-control" formControlName="lastName" placeholder="Last Name" />
-            <label for="lastName">Last Name</label>
-          </div>
-          <div class="form-floating" style="width: 164px;">
-            <input type="date" id="dob" class="form-control" formControlName="dateOfBirth" />
-            <label for="dob">Date of Birth</label>
-          </div>
-          <div class="form-floating" style="width: 164px;">
-            <select id="gender" class="form-select" formControlName="gender">
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            <label for="gender">Gender</label>
-          </div>
-          <div class="form-floating" style="width: 164px;">
-            <input type="text" id="city" class="form-control" formControlName="city" placeholder="City" />
-            <label for="city">City</label>
-          </div>
-          <div class="form-floating" style="width: 164px;">
-            <input type="text" id="occupation" class="form-control" formControlName="occupation" placeholder="Occupation" />
-            <label for="occupation">Occupation</label>
-          </div>
-          <div class="form-floating mb-2">
-            <input type="number" id="income" class="form-control" formControlName="annualIncome" placeholder="Annual Income" />
-            <label for="income">Annual Income</label>
-          </div>
-          <div class="d-flex justify-content-between">
-            <button type="button" class="btn btn-outline-dark" (click)="prevStep()">← Back</button>
-            <button type="submit" class="btn btn-dark">Next →</button>
-          </div>
-        </form>
-      }
-
-      <!-- Step 3: KYC -->
-      @if (step === 3) {
-        <form [formGroup]="kycForm" (ngSubmit)="onSubmit()" novalidate  style="width: 328px;" class="row g-2">
-          <div class="form-floating mb-3" style="width: 164px;">
-            <input type="text" id="panNumber" class="form-control" formControlName="panNumber" placeholder="PAN Number" />
-            <label for="panNumber">PAN Number</label>
-          </div>
-          <div class="form-floating mb-3" style="width: 164px;">
-            <input type="text" id="aadhaarNumber" class="form-control" formControlName="aadhaarNumber" placeholder="Aadhaar Number" />
-            <label for="aadhaarNumber">Aadhaar Number</label>
-          </div>
-          <div class="form-floating mb-3" style="width: 328px;">
-            <select id="documentType" class="form-select" formControlName="documentType">
-              <option value="Pan">PAN</option>
-              <option value="Aadhaar">Aadhaar</option>
-              <option value="Passport">Passport</option>
-                            <option value="Passport">Passport</option>
-              <option value="DrivingLicense">Driving License</option>
-            </select>
-            <label for="documentType">Document Type</label>
-          </div>
-
-          <!-- File Upload -->
-          <div class="mb-4" style="width: 328px;">
-            <label class="form-label fw-semibold">Upload Document</label>
-            <input type="file" class="form-control rounded-4" (change)="onFileChange($event)" />
-            @if (uploadedFileName) {
-              <small class="text-muted mt-1 d-block">Selected: {{ uploadedFileName }}</small>
-            }
-          </div>
-
-          <!-- Navigation Buttons -->
-          <div class="d-flex justify-content-between">
-            <button type="button" class="btn btn-outline-dark" (click)="prevStep()">← Back</button>
-            <button type="submit" class="btn btn-dark" [disabled]="kycForm.invalid || isSubmitting">
-              Submit & Finish →
-            </button>
-          </div>
-
-          <!-- Error Message -->
-          @if (registerError) {
-            <div class="alert alert-danger mt-3 text-center rounded-3">
-              {{ registerError }}
-            </div>
-          }
-        </form>
-      }
-      <!-- Step 4: Success -->
-@if (step === 4) {
-  <div class="text-center animate__animated animate__fadeInUp">
-    <!-- <h2 class="fw-bold mb-3">🎉 Welcome, {{ userName }}!</h2> -->
-    <p class="text-muted mb-4">Your account has been created successfully.</p>
-    <!-- <a [routerLink]="[dashboardRoute]" class="btn btn-dark rounded-3 px-4 py-2"> -->
-      Go to Dashboard →
-    <!-- </a> -->
-  </div>
-}
-
-      
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+

@@ -5,7 +5,7 @@ import { CustomerQuery } from '../models/customer-query';
 
 @Injectable({ providedIn: 'root' })
 export class QueryService {
-  private readonly apiUrl = 'https://your-api.com/api/queries';
+  private readonly apiUrl = 'https://localhost:7262/api/queries';
 
   constructor(private http: HttpClient) {}
 

@@ -1,0 +1,14 @@
+.customer-repayments {
+  max-width: 900px;
+  margin: auto;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.4em 0.6em;
+  border-radius: 6px;
+}

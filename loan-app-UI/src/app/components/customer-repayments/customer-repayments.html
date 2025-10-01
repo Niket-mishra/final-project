@@ -1,1 +1,52 @@
-<p>customer-repayments works!</p>
+<div class="customer-repayments container py-4">
+  <h3 class="text-center fw-bold mb-4">💳 Repayment History</h3>
+
+  @if (isLoading) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading repayments...</p>
+    </div>
+  }
+
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
+  }
+
+  @if (!isLoading && repayments.length === 0 && !errorMessage) {
+    <div class="text-center text-muted">No repayment records found.</div>
+  }
+
+  @if (!isLoading && repayments.length > 0) {
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Loan ID</th>
+            <th>Due Date</th>
+            <th>Amount (₹)</th>
+            <th>EMI #</th>
+            <th>Paid On</th>
+            <th></th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (repayment of repayments; track repayment.repaymentId) {
+            <tr>
+              <td>{{ repayment.loanId }}</td>
+              <td>{{ repayment.dueDate | date:'mediumDate' }}</td>
+              <td>{{ repayment.amount }}</td>
+              <td>{{ repayment.emiNumber}}</td>
+              <td>{{ repayment.paymentDate}}</td>
+              <td>
+                <span class="badge bg-{{ getStatusBadge(repayment.paymentStatus) }}">
+                  {{ repayment.paymentStatus }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

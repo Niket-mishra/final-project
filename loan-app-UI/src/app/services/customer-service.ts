@@ -5,11 +5,12 @@ import { Customer } from '../models/customer';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
-  private readonly apiUrl = 'https://your-api-url.com/api/customers';
+  private readonly apiUrl = 'https://localhost:7262/api/Customers';
 
   constructor(private http: HttpClient) {}
 
   getCustomerById(id: number): Observable<Customer> {
+    console.log('Fetching customer with ID:', id);
     return this.http.get<Customer>(`${this.apiUrl}/${id}`);
   }
 

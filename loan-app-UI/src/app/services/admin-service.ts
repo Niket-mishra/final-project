@@ -8,7 +8,7 @@ import { Report } from '../models/report';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private readonly apiUrl = 'https://oesophageal-unrighteously-laurene.ngrok-free.dev';
+  private readonly apiUrl = 'https://localhost:7262/api/Admins';
 
   constructor(private http: HttpClient) {}
 

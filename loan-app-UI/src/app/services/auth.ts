@@ -7,7 +7,8 @@ import { ToastrService } from 'ngx-toastr';
 
 @Injectable({ providedIn: 'root' })
 export class Auth {
-  private readonly apiUrl = 'https://oesophageal-unrighteously-laurene.ngrok-free.dev';
+  // 🏠 API Base URL
+  private readonly apiUrl = 'https://localhost:7262';
 
   // 🧠 Reactive login state
   private loggedIn = signal(this.isLoggedIn());
@@ -188,4 +189,41 @@ export class Auth {
   toast(message: string, type: 'success' | 'error' = 'success'): void {
     this.toastr[type](message, 'Auth');
   }
+
+   register(payload: any): Observable<{ token: string }> {
+  return this.http.post<{ token: string }>(`${this.apiUrl}/api/auth/register`, payload).pipe(
+    tap({
+      next: (res) => {
+        const token = res.token;
+        console.log('🔐 Token received:', token);
+
+        this.storeDecodedToken(token);
+        this.updateLoginState();
+
+        this.toast('Registration successful', 'success');
+        console.log('🎯 Redirecting to:', this.getDashboardRoute());
+
+        this.zone.run(() => {
+          this.router.navigate([this.getDashboardRoute()]);
+        });
+      },
+      error: (err) => {
+        console.error('❌ Registration failed:', err);
+        this.toast('Registration failed', 'error');
+      }
+    })
+  );
+}
+
+
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/auth/request-password-reset`, { email });
+  }
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, {
+      token,
+      newPassword,
+    });
+  }
+
 }

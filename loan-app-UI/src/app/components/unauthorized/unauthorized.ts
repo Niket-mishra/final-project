@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-unauthorized',
@@ -8,10 +9,13 @@ import { Router } from '@angular/router';
   styleUrl: './unauthorized.css'
 })
 export class Unauthorized {
- constructor(private router: Router) {}
+ constructor(private router: Router, private auth: Auth) {}
+
+ 
 
   goHome(): void {
-    this.router.navigate(['/']);
+    const defaultRoute = this.auth.getDashboardRoute() || '/';
+    this.router.navigate([defaultRoute]);
   }
 
 }

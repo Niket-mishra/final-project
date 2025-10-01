@@ -7,7 +7,7 @@ import { User } from "../models/user";
   providedIn: 'root'
 })
 export class UserService {
-  private readonly apiUrl = 'https://your-api-url.com/api/users'; // Replace with actual endpoint
+  private readonly apiUrl = 'https://localhost:7262/api/users'; 
 
   constructor(private http: HttpClient) {}
 
@@ -40,4 +40,9 @@ export class UserService {
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}`);
   }
+
+  getRoleEntityId(userId: number): Observable<{ roleEntityId: number }> {
+    return this.http.get<{ roleEntityId: number }>(`${this.apiUrl}/role-id/${userId}`);
+  }
+
 }

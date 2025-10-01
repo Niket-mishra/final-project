@@ -6,9 +6,8 @@ import { CustomerProfileComponent } from '../customer-profile-component/customer
 @Component({
   selector: 'app-customers',
   standalone: true,
-  imports: [CustomerProfileComponent],
-  templateUrl: './customers.html',
-  styleUrls: ['./customers.css']
+  templateUrl: "./customers.html",
+  styleUrl: './customers.css',
 })
 export class Customers implements OnInit {
   customers: Customer[] = [];
@@ -32,8 +31,8 @@ export class Customers implements OnInit {
     });
   }
 
-  viewProfile(customer: Customer): void {
-    this.selectedCustomer = customer;
+  viewProfile(selectedCustomer: Customer): void {
+    this.selectedCustomer = selectedCustomer;
   }
 
   closeProfile(): void {

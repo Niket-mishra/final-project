@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Loan } from '../models/loan';
+import { LoanApplication } from '../models/loan-application';
 
 @Injectable({ providedIn: 'root' })
 export class LoanService {
-  private readonly apiUrl = 'https://your-api.com/api/loans';
+  private readonly apiUrl = 'https://localhost:7262/api/loans';
 
   constructor(private http: HttpClient) {}
 
@@ -28,4 +29,6 @@ export class LoanService {
   getLoanByApplication(applicationId: number): Observable<Loan> {
   return this.http.get<Loan>(`${this.apiUrl}/application/${applicationId}`);
   }
+ 
+ 
 }

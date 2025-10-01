@@ -5,6 +5,7 @@ import { LoanScheme } from "./loan-scheme";
 import { LoanDocument } from "./loan-document";
 
 export interface LoanApplication {
+  approvedAmount: number;
   applicationId: number;
   customerId: number;
   schemeId: number;

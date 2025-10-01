@@ -1,79 +1,103 @@
-<div class="container py-5 d-flex align-items-center justify-content-center min-vh-100 min-vw-100 bg-gradient">
-  <div class="login-card card shadow-lg border-0 animate__animated animate__fadeInDown">
-    <div class="card-body p-5">
-      <!-- Heading -->
-      <h2 class="text-center mb-4 fw-bold animate__animated animate__fadeIn">✨ Welcome Back</h2>
-      <p class="text-center text-muted mb-4 animate__animated animate__fadeIn animate__delay-1s">
-        Login to continue your journey 🚀
-      </p>
+<div class="register-wrapper">
+  <!-- Background Decorations -->
+  <div class="bg-decoration decoration-1"></div>
+  <div class="bg-decoration decoration-2"></div>
+  <div class="bg-decoration decoration-3"></div>
 
-      <!-- Login Form -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-        <!-- Username -->
-        <div class="form-floating mb-3 animate__animated animate__fadeInLeft animate__delay-1s">
-          <input
-            type="text"
-            id="username"
-            class="form-control rounded-4"
-            formControlName="username"
-            placeholder="Username"
-          />
-          <label for="username">Username</label>
-        </div>
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100 py-5">
+      <div class="col-lg-5 col-md-7 col-sm-9">
+        
+        <!-- Login Card -->
+        <div class="register-card">
+          <div class="card-inner">
+            
+            <!-- Header -->
+            <div class="register-header text-center mb-4">
+              <div class="icon-wrapper mb-3">
+                <div class="icon-circle">
+                  <span class="icon">🔑</span>
+                </div>
+              </div>
+              <h2 class="fw-bold mb-2">Welcome Back</h2>
+              <p class="text-muted small">Login to continue your journey</p>
+            </div>
 
-        <!-- Password -->
-        <div class="form-floating mb-4 animate__animated animate__fadeInRight animate__delay-1s">
-          <input
-            type="password"
-            id="password"
-            class="form-control rounded-4"
-            formControlName="password"
-            placeholder="Password"
-          />
-          <label for="password">Password</label>
-        </div>
+            <!-- Login Form -->
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form-content">
+              
+              <div class="form-group">
+                <label for="email" class="form-label">
+                  <i class="icon-sm">📧</i> Email Address
+                </label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  class="form-control" 
+                  formControlName="email" 
+                  placeholder="your@email.com"
+                  [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                  [class.is-valid]="loginForm.get('email')?.valid && loginForm.get('email')?.touched"
+                />
+                @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+                  <div class="invalid-feedback">Please enter a valid email</div>
+                }
+              </div>
 
-        <!-- reCAPTCHA
-        <div class="mb-4 text-center animate__animated animate__fadeInUp animate__delay-2s">
-          <re-captcha
-            #captchaRef
-            formControlName="recaptcha"
-            [siteKey]="recaptchaSiteKey"
-            (expired)="onCaptchaExpired()"
-            (errored)="onCaptchaErrored()"
-          ></re-captcha>
-        </div> -->
+              <div class="form-group">
+                <label for="password" class="form-label">
+                  <i class="icon-sm">🔒</i> Password
+                </label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  class="form-control" 
+                  formControlName="password" 
+                  placeholder="••••••••"
+                  [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                  [class.is-valid]="loginForm.get('password')?.valid && loginForm.get('password')?.touched"
+                />
+                @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                  <div class="invalid-feedback">Password is required</div>
+                }
+              </div>
 
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          class="btn btn-dark w-100 py-2 rounded-3 shadow-sm animate__animated animate__pulse animate__infinite"
-          [disabled]="loginForm.invalid || isSubmitting"
-        >
-          @if (isSubmitting) {
-            <span class="spinner-border spinner-border-sm me-2"></span>
-          }
-          <span class="fw-semibold">Login</span>
-        </button>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                  <input type="checkbox" id="rememberMe" class="form-check-input" formControlName="rememberMe" />
+                  <label for="rememberMe" class="form-check-label small">Remember me</label>
+                </div>
+                <a routerLink="/forgot-password" class="small text-primary text-decoration-none">Forgot Password?</a>
+              </div>
 
-        <!-- Error Message -->
-        @if (loginError) {
-          <div class="alert alert-danger mt-3 text-center rounded-3 animate__animated animate__shakeX">
-            {{ loginError }}
+              @if (loginError) {
+                <div class="alert alert-danger py-2">
+                  <strong>⚠️ Error:</strong> {{ loginError }}
+                </div>
+              }
+
+              <button type="submit" class="btn btn-primary btn-lg w-100 mt-2" [disabled]="loginForm.invalid || isSubmitting">
+                @if (isSubmitting) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Logging in...
+                } @else {
+                  Login
+                  <span class="btn-icon">→</span>
+                }
+              </button>
+
+              <div class="text-center mt-3">
+                <small class="text-muted">
+                  Don’t have an account? 
+                  <a routerLink="/register" class="text-primary fw-semibold text-decoration-none">Register</a>
+                </small>
+              </div>
+            </form>
+
           </div>
-        }
-
-        <!-- Sign Up CTA -->
-        <div class="text-center mt-4 animate__animated animate__fadeInUp animate__delay-2s">
-          <small class="text-muted">New here?</small>
-          <a
-            [routerLink]="['/auth/register']"
-            class="d-block fw-bold text-decoration-none mt-2 btn btn-outline-dark rounded-3 shadow-sm"
-          >
-            Register Now →
-          </a>
         </div>
-      </form>
+
+      </div>
     </div>
   </div>
 </div>
