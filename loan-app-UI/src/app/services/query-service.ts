@@ -5,6 +5,9 @@ import { CustomerQuery } from '../models/customer-query';
 
 @Injectable({ providedIn: 'root' })
 export class QueryService {
+  createQuery(queryData: { customerId: number; subject: string; message: string; priority: string; status: string; createdAt: string; }) {
+    return this.http.post<CustomerQuery>(this.apiUrl, queryData);
+  }
   private readonly apiUrl = 'https://localhost:7262/api/queries';
 
   constructor(private http: HttpClient) {}

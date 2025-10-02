@@ -123,7 +123,7 @@ interface NavItem {
                       <span class="card-icon">➕</span>
                       <span class="card-label">New Scheme</span>
                     </a>
-                    <a [routerLink]="['/applications/list']" class="action-card" (click)="closeQuickActions()">
+                    <a [routerLink]="['/admin/applications-list']" class="action-card" (click)="closeQuickActions()">
                       <span class="card-icon">📋</span>
                       <span class="card-label">Applications</span>
                     </a>
@@ -157,12 +157,12 @@ interface NavItem {
                     </div>
                     <div class="profile-details">
                       <h6 class="profile-dropdown-name">{{ authService.getUserName() }}</h6>
-                      <p class="profile-dropdown-email">admin@loanapp.com</p>
+                      <p class="profile-dropdown-email">{{authService.getCurrentUser()?.email}}</p>
                     </div>
                   </div>
                   
                   <div class="profile-dropdown-menu">
-                    <a [routerLink]="['/user/profile']" class="dropdown-link" (click)="closeProfileMenu()">
+                    <a [routerLink]="['/admin/profile']" class="dropdown-link" (click)="closeProfileMenu()">
                       <span class="link-icon">👤</span>
                       <span class="link-text">My Profile</span>
                     </a>
@@ -1049,10 +1049,10 @@ export class AdminLayout implements OnInit {
       icon: '💰',
       expanded: false,
       items: [
-        { label: 'All Applications', route: '/applications/list', icon: '📋' },
+        { label: 'All Applications', route: '/admin/application-list', icon: '📋' },
         { label: 'Loan Schemes', route: '/admin/loan-schemes', icon: '📝' },
-        { label: 'Active Loans', route: '/loans/list', icon: '💵' },
-        { label: 'Approvals', route: '/officer/loan-approvals', icon: '✅' }
+        { label: 'Active Loans', route: '/admin/loan-list', icon: '💵' },
+        { label: 'Approvals', route: '/admin/approval-list', icon: '✅' }
       ]
     },
     {
@@ -1061,9 +1061,9 @@ export class AdminLayout implements OnInit {
       expanded: false,
       items: [
         { label: 'All Users', route: '/admin/users', icon: '👤' },
-        { label: 'Customers', route: '/officer/customers', icon: '🧑‍💼' },
+        { label: 'Customers', route: '/admin/customers', icon: '🧑‍💼' },
         { label: 'Loan Officers', route: '/admin/loan-officers', icon: '👨‍💼' },
-        { label: 'Officer Manager', route: '/admin/officer-manager', icon: '⚙️' }
+        { label: 'Create Officer', route: '/admin/loan-officers/create', icon: '⚙️' }
       ]
     },
     {
@@ -1071,9 +1071,9 @@ export class AdminLayout implements OnInit {
       icon: '📁',
       expanded: false,
       items: [
-        { label: 'All Documents', route: '/documents/list', icon: '📄' },
-        { label: 'Verification', route: '/officer/document-verification', icon: '✓' },
-        { label: 'Upload', route: '/customer/upload-documents', icon: '⬆️' }
+        { label: 'All Documents', route: '/admin/document-list', icon: '📄' },
+        { label: 'Verification', route: '/admin/document-verification', icon: '✓' },
+        { label: 'Verifed Customer', route: '/admin/customer-documents', icon: '⬆️' }
       ]
     },
     {
@@ -1081,9 +1081,9 @@ export class AdminLayout implements OnInit {
       icon: '💳',
       expanded: false,
       items: [
-        { label: 'Repayments', route: '/repayments/history', icon: '💸' },
+        { label: 'Repayments', route: '/admin/repayments-history', icon: '💸' },
         { label: 'NPA Monitoring', route: '/admin/npa-monitoring', icon: '⚠️', badge: 5, color: '#f59e0b' },
-        { label: 'Payment Processing', route: '/customer/make-payment', icon: '💰' }
+        { label: 'Payment Processing', route: '/admin/payments', icon: '💰' }
       ]
     },
     {
@@ -1092,9 +1092,9 @@ export class AdminLayout implements OnInit {
       expanded: false,
       items: [
         { label: 'Reports Dashboard', route: '/admin/reports', icon: '📊' },
-        { label: 'Generate Report', route: '/officer/generate-report', icon: '📝' },
+        { label: 'Generate Report', route: '/admin/generate-report', icon: '📝' },
         { label: 'Workload Meter', route: '/admin/workload-meter', icon: '⚖️' },
-        { label: 'Performance', route: '/officer/performance', icon: '🎯' }
+        { label: 'Performance', route: '/admin/officer-performance', icon: '🎯' }
       ]
     },
     {
@@ -1102,9 +1102,9 @@ export class AdminLayout implements OnInit {
       icon: '💬',
       expanded: false,
       items: [
-        { label: 'Customer Queries', route: '/officer/queries', icon: '❓' },
+        { label: 'Customer Queries', route: '/admin/queries', icon: '❓' },
         { label: 'Notifications', route: '/admin/notifications', icon: '🔔', badge: 12, color: '#ef4444' },
-        { label: 'Feedback', route: '/admin/feedback-history', icon: '⭐' }
+        { label: 'Feedback', route: '/admin/feedback', icon: '⭐' }
       ]
     },
     {

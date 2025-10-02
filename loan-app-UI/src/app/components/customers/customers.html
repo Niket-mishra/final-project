@@ -1,27 +1,228 @@
-<div class="container py-4">
-  <h2 class="mb-4">All Customers</h2>
-
-  @if (error) {
-    <div class="alert alert-danger">{{ error }}</div>
-  }
-
-  <div class="row g-3">
-    @for (customer of customers; track customer.customerId) {
-      <div class="col-md-6">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title">{{ customer.firstName }} {{ customer.lastName }}</h5>
-            <p><strong>City:</strong> {{ customer.city }}</p>
-            <p><strong>Occupation:</strong> {{ customer.occupation }}</p>
-            <p><strong>Status:</strong> {{ customer.verificationStatus }}</p>
-            <button class="btn btn-sm btn-outline-primary" (click)="viewProfile(customer)">View Profile</button>
-          </div>
-        </div>
-      </div>
-    }
+<div class="customers-container container py-4">
+  <div class="header-section mb-4">
+    <div>
+      <h2 class="fw-bold mb-2">Customer Management</h2>
+      <p class="text-muted mb-0">View and manage all customer profiles</p>
+    </div>
   </div>
 
-  @if (selectedCustomer) {
-    <!-- <app-customer-profile [customer]="selectedCustomer" (close)="closeProfile()"></app-customer-profile> -->
+  @if (error) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+  }
+
+  <!-- Stats Overview -->
+  @if (!isLoading && customers.length > 0) {
+    <div class="stats-overview mb-4">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ customers.length }}</div>
+          <div class="stat-label">Total Customers</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getVerifiedCount() }}</div>
+          <div class="stat-label">Verified</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-warning">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getPendingCount() }}</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-danger">
+          <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getRejectedCount() }}</div>
+          <div class="stat-label">Rejected</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading && customers.length > 0) {
+    <div class="filters-section mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search customers..."
+              [(ngModel)]="searchTerm"
+              (input)="filterCustomers()"
+            />
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="filterCustomers()">
+            <option value="">All Status</option>
+            <option value="1">Verified</option>
+            <option value="0">Pending</option>
+            <option value="2">Rejected</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="cityFilter" (change)="filterCustomers()">
+            <option value="">All Cities</option>
+            @for (city of getUniqueCities(); track city) {
+              <option [value]="city">{{ city }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="sortCustomers()">
+            <option value="name">By Name</option>
+            <option value="city">By City</option>
+            <option value="income">By Income</option>
+            <option value="credit">By Credit Score</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-2"></i>Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading customers...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (customers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-people"></i>
+      </div>
+      <h5>No Customers Found</h5>
+      <p class="text-muted">There are no customers in the system yet.</p>
+    </div>
+  }
+
+  <!-- No Results State -->
+  @else if (filteredCustomers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5>No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  }
+
+  <!-- Customers Grid -->
+  @else {
+    <div class="customers-grid">
+      @for (customer of filteredCustomers; track customer.customerId) {
+        <div class="customer-card" (click)="viewProfile(customer)">
+          <!-- Card Header -->
+          <div class="customer-header">
+            <div class="customer-avatar">
+              {{ getInitials(customer) }}
+            </div>
+            <div class="customer-name-section">
+              <h6 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h6>
+              <span class="badge status-badge" [class]="'bg-' + getStatusColor(customer.verificationStatus)">
+                {{ getStatusText(customer.verificationStatus) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="customer-body">
+            <div class="info-row">
+              <i class="bi bi-envelope"></i>
+              <span>{{ customer.user?.email || customer.user!.email || '—' }}</span>
+            </div>
+
+            <div class="info-row">
+              <i class="bi bi-telephone"></i>
+              <span>{{ customer.user?.phoneNumber || customer.user?.phoneNumber || '—' }}</span>
+            </div>
+
+            <div class="info-row">
+              <i class="bi bi-geo-alt"></i>
+              <span>{{ customer.city || '—' }}, {{ customer.address || '—' }}</span>
+            </div>
+
+            <div class="info-row">
+              <i class="bi bi-briefcase"></i>
+              <span>{{ customer.occupation || '—' }}</span>
+            </div>
+
+            <div class="financial-info">
+              <div class="financial-item">
+                <div class="financial-label">Annual Income</div>
+                <div class="financial-value">₹{{ customer.annualIncome | number:'1.0-0' }}</div>
+              </div>
+              <div class="financial-item">
+                <div class="financial-label">Credit Score</div>
+                <div class="financial-value">{{ customer.creditScore || 'N/A' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Footer -->
+          <div class="customer-footer">
+            <button class="btn btn-sm btn-outline-primary w-100" (click)="viewProfile(customer); $event.stopPropagation()">
+              <i class="bi bi-eye me-2"></i>View Full Profile
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   }
 </div>
+
+<!-- Customer Profile Modal -->
+@if (showProfileModal && selectedCustomer) {
+  <div class="modal-backdrop" (click)="closeProfile()"></div>
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-person-circle text-primary me-2"></i>
+          Customer Profile
+        </h5>
+        <button type="button" class="btn-close" (click)="closeProfile()"></button>
+      </div>
+      <div class="modal-body p-0">
+        <app-customer-details 
+          [selectedCustomer]="selectedCustomer"
+          (close)="closeProfile()"
+        ></app-customer-details>
+      </div>
+    </div>
+  </div>
+}
+

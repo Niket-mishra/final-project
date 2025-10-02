@@ -1,9 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { OfficerService } from '../../services/officer-service';
 import { LoanOfficer } from '../../models/loan-officer';
 import { ToastService } from '../../services/toast-service';
+import { ActivatedRoute, Router } from '@angular/router';
+
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-officer-manager',
@@ -13,18 +16,45 @@ import { ToastService } from '../../services/toast-service';
   styleUrls: ['./officer-manager-component.css']
 })
 export class OfficerManagerComponent implements OnInit {
-  officers: LoanOfficer[] = [];
   officerForm!: FormGroup;
+  editingOfficer: LoanOfficer | null = null;
   isEditing = false;
-  selectedOfficerId: number | null = null;
+  private modalInstance: any;
 
   private fb = inject(FormBuilder);
   private officerService = inject(OfficerService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private location = inject(Location);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.initForm();
-    this.loadOfficers();
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.officerService.getAllOfficers().subscribe({
+        next: officers => {
+          const officer = officers.find(o => o.officerId === +id);
+          if (officer) {
+            this.startEdit(officer);
+          } else {
+            this.toast.error('⚠️ Officer not found');
+            this.startAdd();
+          }
+          setTimeout(() => this.openModal(), 0);
+        },
+        error: () => {
+          this.toast.error('❌ Failed to load officers');
+          this.startAdd();
+          setTimeout(() => this.openModal(), 0);
+        }
+      });
+    } else {
+      this.startAdd();
+      setTimeout(() => this.openModal(), 0);
+    }
   }
 
   initForm(): void {
@@ -32,64 +62,97 @@ export class OfficerManagerComponent implements OnInit {
       city: ['', Validators.required],
       designation: ['', Validators.required],
       specialization: ['', Validators.required],
-      maxLoansAssigned: [10, [Validators.required, Validators.min(1)]],
-      isActive: [true]
+      currentWorkload: [0, Validators.required],
+      maxLoansAssigned: [0, [Validators.required, Validators.min(1)]],
+      isActive: [true],
+
+      user: this.fb.group({
+        username: ['', Validators.required],
+        email: ['', [Validators.required, Validators.email]],
+        phoneNumber: [''],
+        passwordHash: ['', Validators.required],
+        role: ['LoanOfficer', Validators.required]
+      })
     });
   }
 
-  loadOfficers(): void {
-    this.officerService.getAllOfficers().subscribe({
-      next: (res) => this.officers = res,
-      error: () => this.toast.error('Failed to load officers')
+  startAdd(): void {
+    this.editingOfficer = null;
+    this.isEditing = false;
+    this.officerForm.reset({
+      city: '',
+      designation: '',
+      specialization: '',
+      currentWorkload:0,
+      maxLoansAssigned: 10,
+      isActive: true,
+      user: {
+        username: '',
+        email: '',
+        phoneNumber: '',
+        passwordHash: '',
+        role: 'LoanOfficer'
+      }
     });
+    this.cd.detectChanges();
   }
 
-  submitOfficer(): void {
-    if (this.officerForm.invalid) return;
+  startEdit(officer: LoanOfficer): void {
+    this.editingOfficer = officer;
+    this.isEditing = true;
 
-    const payload = this.officerForm.value;
+    this.officerForm.patchValue({
+      city: officer.city,
+      designation: officer.designation,
+      specialization: officer.specialization,
+      currentWorkload: officer.currentWorkload,
+      maxLoansAssigned: officer.maxLoansAssigned,
+      isActive: officer.isActive,
+      user: officer.user ? {
+        username: officer.user.username,
+        email: officer.user.email,
+        phoneNumber: officer.user.phoneNumber,
+        passwordHash: '', // do not prefill
+        role: officer.user.role
+      } : {}
+    });
 
-    if (this.isEditing && this.selectedOfficerId) {
-      this.officerService.updateOfficer(this.selectedOfficerId, payload).subscribe({
-        next: () => {
-          this.toast.success('Officer updated');
-          this.resetForm();
-          this.loadOfficers();
-        },
-        error: () => this.toast.error('Update failed')
-      });
-    } else {
-      this.officerService.createOfficer(payload).subscribe({
-        next: () => {
-          this.toast.success('Officer added');
-          this.resetForm();
-          this.loadOfficers();
-        },
-        error: () => this.toast.error('Creation failed')
-      });
+    this.cd.detectChanges();
+  }
+
+  openModal(): void {
+    const modalElement = document.getElementById('officerModal');
+    if (modalElement) {
+      this.modalInstance = new bootstrap.Modal(modalElement);
+      this.modalInstance.show();
     }
   }
 
-  editOfficer(officer: LoanOfficer): void {
-    this.isEditing = true;
-    this.selectedOfficerId = officer.officerId;
-    this.officerForm.patchValue(officer);
+  closeModal(): void {
+    if (this.modalInstance) this.modalInstance.hide();
+    this.location.back();
   }
 
-  toggleOfficerStatus(officer: LoanOfficer): void {
-    const updated = { ...officer, isActive: !officer.isActive };
-    this.officerService.updateOfficer(officer.officerId, updated).subscribe({
-      next: () => {
-        this.toast.success(`Officer ${updated.isActive ? 'activated' : 'deactivated'}`);
-        this.loadOfficers();
-      },
-      error: () => this.toast.error('Status update failed')
-    });
-  }
+  saveOfficer(): void {
+    const onSuccess = (msg: string) => {
+      this.toast.success(msg);
+      if (this.modalInstance) this.modalInstance.hide();
+      this.location.back();
+    };
 
-  resetForm(): void {
-    this.officerForm.reset({ isActive: true });
-    this.isEditing = false;
-    this.selectedOfficerId = null;
+    const onError = (msg: string) => this.toast.error(msg);
+
+    if (this.isEditing && this.editingOfficer) {
+      const payload = { ...this.officerForm.value, officerId: this.editingOfficer.officerId };
+      this.officerService.updateOfficer(this.editingOfficer.officerId, payload).subscribe({
+        next: () => onSuccess('✅ Officer updated'),
+        error: () => onError('❌ Failed to update')
+      });
+    } else {
+      this.officerService.createOfficer(this.officerForm.value).subscribe({
+        next: () => onSuccess('✅ Officer added'),
+        error: () => onError('❌ Failed to add')
+      });
+    }
   }
 }

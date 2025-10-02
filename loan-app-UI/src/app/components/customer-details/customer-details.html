@@ -1,1 +1,388 @@
-<p>customer-details works!</p>
+<div class="customer-details-container">
+  <!-- Header Section -->
+  <div class="details-header">
+    <div class="customer-profile-section">
+      <div class="profile-avatar">
+        {{ getInitials(selectedCustomer) }}
+      </div>
+      <div class="profile-info">
+        <h4 class="customer-name">
+          {{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}
+          <span class="badge ms-2" [ngClass]="'bg-' + getStatusColor(selectedCustomer.verificationStatus)">
+            {{ getStatusText(selectedCustomer.verificationStatus) }}
+          </span>
+        </h4>
+        <div class="customer-meta">
+          <span class="meta-item">
+            <i class="bi bi-envelope"></i>
+            {{ selectedCustomer.user?.email }}
+          </span>
+          <span class="meta-item">
+            <i class="bi bi-telephone"></i>
+            {{ selectedCustomer.user?.phoneNumber }}
+          </span>
+          <span class="meta-item">
+            <i class="bi bi-geo-alt"></i>
+            {{ selectedCustomer.city }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-outline-primary" (click)="editProfile()">
+        <i class="bi bi-pencil me-2"></i>Edit Profile
+      </button>
+      <button class="btn btn-primary" (click)="sendMessage()">
+        <i class="bi bi-chat-dots me-2"></i>Send Message
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="quick-stats">
+    <div class="stat-box">
+      <div class="stat-icon bg-primary-subtle">
+        <i class="bi bi-currency-rupee text-primary"></i>
+      </div>
+      <div class="stat-details">
+        <div class="stat-label">Annual Income</div>
+        <div class="stat-value">₹{{ selectedCustomer.annualIncome | number:'1.0-0' }}</div>
+      </div>
+    </div>
+
+    <div class="stat-box">
+      <div class="stat-icon bg-success-subtle">
+        <i class="bi bi-graph-up text-success"></i>
+      </div>
+      <div class="stat-details">
+        <div class="stat-label">Credit Score</div>
+        <div class="stat-value">
+          {{ selectedCustomer.creditScore || 'N/A' }}
+          @if (selectedCustomer.creditScore) {
+            <span class="badge ms-2" [ngClass]="'bg-' + getCreditScoreColor(selectedCustomer.creditScore)">
+              {{ getCreditScoreLabel(selectedCustomer.creditScore) }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-box">
+      <div class="stat-icon bg-info-subtle">
+        <i class="bi bi-briefcase text-info"></i>
+      </div>
+      <div class="stat-details">
+        <div class="stat-label">Occupation</div>
+        <div class="stat-value">{{ selectedCustomer.occupation || 'N/A' }}</div>
+      </div>
+    </div>
+
+    <div class="stat-box">
+      <div class="stat-icon bg-warning-subtle">
+        <i class="bi bi-calendar-check text-warning"></i>
+      </div>
+      <div class="stat-details">
+        <div class="stat-label">Total Loans</div>
+        <div class="stat-value">{{ loanApplications.length }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-navigation">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'overview'"
+      (click)="setActiveTab('overview')">
+      <i class="bi bi-person-lines-fill me-2"></i>Overview
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'documents'"
+      (click)="setActiveTab('documents')">
+      <i class="bi bi-file-earmark-text me-2"></i>Documents ({{ documents.length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'loans'"
+      (click)="setActiveTab('loans')">
+      <i class="bi bi-bank me-2"></i>Loan Applications ({{ loanApplications.length }})
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'activity'"
+      (click)="setActiveTab('activity')">
+      <i class="bi bi-clock-history me-2"></i>Activity Log
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Overview Tab -->
+    @if (activeTab === 'overview') {
+      <div class="overview-section">
+        <div class="row g-4">
+          <!-- Personal Information -->
+          <div class="col-md-6">
+            <div class="info-card">
+              <h6 class="info-card-title">
+                <i class="bi bi-person-circle text-primary me-2"></i>
+                Personal Information
+              </h6>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>First Name</label>
+                  <span>{{ selectedCustomer.firstName || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Last Name</label>
+                  <span>{{ selectedCustomer.lastName || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Date of Birth</label>
+                  <span>{{ selectedCustomer.dateOfBirth ? formatDate(selectedCustomer.dateOfBirth) : '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Gender</label>
+                  <span>{{ selectedCustomer.gender || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="col-md-6">
+            <div class="info-card">
+              <h6 class="info-card-title">
+                <i class="bi bi-telephone-fill text-success me-2"></i>
+                Contact Information
+              </h6>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Email</label>
+                  <span>{{ selectedCustomer.user?.email || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Phone Number</label>
+                  <span>{{ selectedCustomer.user?.phoneNumber || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>City</label>
+                  <span>{{ selectedCustomer.city || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Address</label>
+                  <span>{{ selectedCustomer.address || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Information -->
+          <div class="col-md-6">
+            <div class="info-card">
+              <h6 class="info-card-title">
+                <i class="bi bi-cash-stack text-warning me-2"></i>
+                Financial Information
+              </h6>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Annual Income</label>
+                  <span class="fw-semibold">₹{{ selectedCustomer.annualIncome | number:'1.0-0' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Credit Score</label>
+                  <span>
+                    {{ selectedCustomer.creditScore || 'N/A' }}
+                    @if (selectedCustomer.creditScore) {
+                      <span class="badge ms-1" [ngClass]="'bg-' + getCreditScoreColor(selectedCustomer.creditScore)">
+                        {{ getCreditScoreLabel(selectedCustomer.creditScore) }}
+                      </span>
+                    }
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label>Occupation</label>
+                  <span>{{ selectedCustomer.occupation || '—' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Employment Type</label>
+                  <span>Private Limited</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verification Status -->
+          <div class="col-md-6">
+            <div class="info-card">
+              <h6 class="info-card-title">
+                <i class="bi bi-shield-check text-info me-2"></i>
+                Verification Status
+              </h6>
+              <div class="verification-content">
+                <div class="current-status">
+                  <span class="status-label">Current Status:</span>
+                  <span class="badge badge-lg" [ngClass]="'bg-' + getStatusColor(selectedCustomer.verificationStatus)">
+                    {{ getStatusText(selectedCustomer.verificationStatus) }}
+                  </span>
+                </div>
+
+                <div class="status-actions mt-3">
+                  <p class="small text-muted mb-2">Update verification status:</p>
+                  <div class="btn-group w-100">
+                    <button 
+                      class="btn btn-sm btn-outline-success"
+                      [disabled]="isLoading"
+                      (click)="updateVerificationStatus('Verified')">
+                      <i class="bi bi-check-circle me-1"></i>Verify
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-warning"
+                      [disabled]="isLoading"
+                      (click)="updateVerificationStatus('Pending')">
+                      <i class="bi bi-clock me-1"></i>Pending
+                    </button>
+                    <button 
+                      class="btn btn-sm btn-outline-danger"
+                      [disabled]="isLoading"
+                      (click)="updateVerificationStatus('Rejected')">
+                      <i class="bi bi-x-circle me-1"></i>Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Documents Tab -->
+    @if (activeTab === 'documents') {
+      <div class="documents-section">
+        @if (documents.length === 0) {
+          <div class="empty-state-small">
+            <i class="bi bi-file-earmark-x"></i>
+            <p>No documents uploaded yet</p>
+          </div>
+        } @else {
+          <div class="documents-grid">
+            @for (doc of documents; track doc.id) {
+              <div class="document-card">
+                <div class="document-header">
+                  <div class="document-icon">
+                    <i [class]="getDocumentIcon(doc.type)"></i>
+                  </div>
+                  <span class="badge" [ngClass]="'bg-' + getStatusColor(doc.status)">
+                    {{ doc.status }}
+                  </span>
+                </div>
+                <div class="document-body">
+                  <h6 class="document-name">{{ doc.name }}</h6>
+                  <p class="document-type">{{ doc.type }}</p>
+                  <div class="document-meta">
+                    <span><i class="bi bi-calendar3"></i> {{ formatDate(doc.uploadDate) }}</span>
+                    <span><i class="bi bi-file-earmark"></i> {{ doc.size }}</span>
+                  </div>
+                </div>
+                <div class="document-actions">
+                  <button class="btn btn-sm btn-outline-primary" (click)="downloadDocument(doc)">
+                    <i class="bi bi-download"></i>
+                  </button>
+                  @if (doc.status === 'pending') {
+                    <button class="btn btn-sm btn-outline-success" (click)="verifyDocument(doc)">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="rejectDocument(doc)">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Loans Tab -->
+    @if (activeTab === 'loans') {
+      <div class="loans-section">
+        @if (loanApplications.length === 0) {
+          <div class="empty-state-small">
+            <i class="bi bi-bank"></i>
+            <p>No loan applications found</p>
+          </div>
+        } @else {
+          <div class="loans-list">
+            @for (loan of loanApplications; track loan.id) {
+              <div class="loan-card">
+                <div class="loan-header">
+                  <div>
+                    <h6 class="loan-id">{{ loan.id }}</h6>
+                    <p class="loan-type">{{ loan.type }}</p>
+                  </div>
+                  <span class="badge badge-lg" [ngClass]="'bg-' + getLoanStatusColor(loan.status)">
+                    {{ loan.status }}
+                  </span>
+                </div>
+                <div class="loan-details">
+                  <div class="loan-detail-item">
+                    <label>Loan Amount</label>
+                    <span class="fw-bold">₹{{ loan.amount | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="loan-detail-item">
+                    <label>Interest Rate</label>
+                    <span>{{ loan.interestRate }}%</span>
+                  </div>
+                  <div class="loan-detail-item">
+                    <label>Application Date</label>
+                    <span>{{ formatDate(loan.applicationDate) }}</span>
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-outline-primary w-100 mt-3">
+                  <i class="bi bi-eye me-2"></i>View Details
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Activity Tab -->
+    @if (activeTab === 'activity') {
+      <div class="activity-section">
+        @if (activityLogs.length === 0) {
+          <div class="empty-state-small">
+            <i class="bi bi-clock-history"></i>
+            <p>No activity recorded yet</p>
+          </div>
+        } @else {
+          <div class="activity-timeline">
+            @for (activity of activityLogs; track activity.id) {
+              <div class="activity-item">
+                <div class="activity-marker" [ngClass]="'bg-' + activity.type"></div>
+                <div class="activity-content">
+                  <div class="activity-header">
+                    <h6 class="activity-title">
+                      <i [class]="getActivityIcon(activity.type)" [ngClass]="'text-' + activity.type"></i>
+                      {{ activity.action }}
+                    </h6>
+                    <span class="activity-time">
+                      {{ formatDate(activity.timestamp) }} at {{ formatTime(activity.timestamp) }}
+                    </span>
+                  </div>
+                  <p class="activity-description">{{ activity.description }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+

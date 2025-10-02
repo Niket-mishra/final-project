@@ -1,15 +1,20 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
-import { User } from "../models/user";
+import { Role, User } from "../models/user";
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  
   private readonly apiUrl = 'https://localhost:7262/api/users'; 
 
   constructor(private http: HttpClient) {}
+
+  createUser(payload: Partial<User>): Observable<User> {
+    return this.http.post<User>(this.apiUrl, payload);
+  }
 
   /** Get current logged-in user profile */
   getProfile(): Observable<User> {

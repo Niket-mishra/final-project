@@ -1,24 +1,372 @@
-<div class="query-container">
-  <h4 class="text-center fw-bold mb-4">❓ Your Queries</h4>
-
-  @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading your queries...</p>
+<div class="customer-queries container py-4">
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-2">Customer Support Queries</h3>
+        <p class="text-muted mb-0">Submit and track your support requests</p>
+      </div>
+      <button class="btn btn-primary" (click)="openNewQueryForm()">
+        <i class="bi bi-plus-circle me-2"></i>New Query
+      </button>
     </div>
-  } @else {
-    @if (queries.length === 0) {
-      <p class="text-muted text-center">No queries submitted yet.</p>
-    } @else {
-      <ul class="list-group">
-        @for (q of queries; track q.queryId) {
-          <li class="list-group-item">
-            <strong>{{ q.querySubject }}</strong> — <span class="text-muted">{{ q.queryStatus }}</span>
-            <br />
-            <small class="text-muted">Response: {{ q.officerResponse || 'Pending' }}</small>
-          </li>
-        }
-      </ul>
-    }
+  </div>
+
+  <!-- Stats Overview -->
+  @if (!isLoading && queries.length > 0) {
+    <div class="stats-overview mb-4">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="bi bi-inbox"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getOpenQueriesCount() }}</div>
+          <div class="stat-label">Open</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-info">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getInProgressQueriesCount() }}</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getResolvedQueriesCount() }}</div>
+          <div class="stat-label">Resolved</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-secondary">
+          <i class="bi bi-list-task"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ queries.length }}</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading && queries.length > 0) {
+    <div class="filters-section mb-4">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search queries..."
+              [(ngModel)]="searchTerm"
+              (input)="filterQueries()"
+            />
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="filterQueries()">
+            <option value="">All Status</option>
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="priorityFilter" (change)="filterQueries()">
+            <option value="">All Priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="sortQueries()">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="priority">By Priority</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-2"></i>Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading queries...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (queries.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h5>No Queries Yet</h5>
+      <p class="text-muted">You haven't submitted any support queries. Create your first query to get started.</p>
+      <button class="btn btn-primary mt-3" (click)="openNewQueryForm()">
+        <i class="bi bi-plus-circle me-2"></i>Submit Your First Query
+      </button>
+    </div>
+  }
+
+  <!-- No Results State -->
+  @else if (filteredQueries.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5>No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  }
+
+  <!-- Queries List -->
+  @else {
+    <div class="queries-grid">
+      @for (query of filteredQueries; track query.queryId) {
+        <div class="query-card" (click)="viewQueryDetails(query)">
+          <!-- Card Header -->
+          <div class="query-header">
+            <div class="query-id">
+              <i class="bi bi-hash"></i>{{ query.queryId }}
+            </div>
+            <div class="query-badges">
+              <span class="badge" [class]="'bg-' + getPriorityColor(query.priority)">
+                {{ query.priority }}
+              </span>
+              <span class="badge" [class]="'bg-' + getStatusColor(query.queryStatus)">
+                <i [class]="getStatusIcon(query.queryStatus) + ' me-1'"></i>
+                {{ query.queryStatus }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="query-body">
+            <h6 class="query-subject">{{ query.querySubject }}</h6>
+            <p class="query-message">{{ query.queryDescription }}</p>
+          </div>
+
+          <!-- Card Footer -->
+          <div class="query-footer">
+            <div class="query-meta">
+              <i class="bi bi-calendar3 me-1"></i>
+              {{ query.createdAt | date:'MMM d, y' }}
+            </div>
+            <button class="btn btn-sm btn-outline-primary" (click)="viewQueryDetails(query); $event.stopPropagation()">
+              View Details
+              <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   }
 </div>
+
+<!-- New Query Modal -->
+@if (showNewQueryForm) {
+  <div class="modal-backdrop" (click)="closeNewQueryForm()"></div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-plus-circle text-primary me-2"></i>
+          Submit New Query
+        </h5>
+        <button type="button" class="btn-close" (click)="closeNewQueryForm()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="submitNewQuery()" #queryForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label">Subject <span class="text-danger">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newQuery.subject"
+              name="subject"
+              required
+              placeholder="Brief description of your issue"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Priority</label>
+            <select class="form-select" [(ngModel)]="newQuery.priority" name="priority">
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Message <span class="text-danger">*</span></label>
+            <textarea 
+              class="form-control" 
+              rows="5"
+              [(ngModel)]="newQuery.message"
+              name="message"
+              required
+              placeholder="Provide detailed information about your query..."
+            ></textarea>
+          </div>
+
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Our support team will respond to your query within 24-48 hours.
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeNewQueryForm()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="submitNewQuery()"
+          [disabled]="isSubmitting || !newQuery.subject.trim() || !newQuery.message.trim()"
+        >
+          @if (isSubmitting) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Submit Query
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Query Details Modal -->
+@if (showDetailsModal && selectedQuery) {
+  <div class="modal-backdrop" (click)="closeDetailsModal()"></div>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Query #{{ selectedQuery.queryId }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeDetailsModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="query-details">
+          <!-- Status and Priority -->
+          <div class="detail-row">
+            <div class="detail-item">
+              <span class="detail-label">Status:</span>
+              <span class="badge" [class]="'bg-' + getStatusColor(selectedQuery.queryStatus)">
+                <i [class]="getStatusIcon(selectedQuery.queryStatus) + ' me-1'"></i>
+                {{ selectedQuery.queryStatus }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Priority:</span>
+              <span class="badge" [class]="'bg-' + getPriorityColor(selectedQuery.priority)">
+                {{ selectedQuery.priority }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Subject -->
+          <div class="detail-section">
+            <h6 class="section-title">Subject</h6>
+            <p class="section-content">{{ selectedQuery.querySubject }}</p>
+          </div>
+
+          <!-- Message -->
+          <div class="detail-section">
+            <h6 class="section-title">Description</h6>
+            <p class="section-content">{{ selectedQuery.queryDescription }}</p>
+          </div>
+
+          <!-- Response (if any) -->
+          @if (selectedQuery.officerResponse) {
+            <div class="detail-section response-section">
+              <h6 class="section-title">
+                <i class="bi bi-reply me-2"></i>Response
+              </h6>
+              <p class="section-content">{{ selectedQuery.officerResponse }}</p>
+              @if (selectedQuery.respondedAt) {
+                <small class="text-muted">
+                  Responded on {{ selectedQuery.respondedAt | date:'medium' }}
+                </small>
+              }
+            </div>
+          }
+
+          <!-- Timeline -->
+          <div class="detail-section">
+            <h6 class="section-title">Timeline</h6>
+            <div class="timeline">
+              <div class="timeline-item">
+                <i class="bi bi-circle-fill text-primary"></i>
+                <div>
+                  <div class="timeline-label">Query Submitted</div>
+                  <div class="timeline-date">{{ selectedQuery.createdAt | date:'medium' }}</div>
+                </div>
+              </div>
+              @if (selectedQuery.respondedAt) {
+                <div class="timeline-item">
+                  <i class="bi bi-circle-fill text-success"></i>
+                  <div>
+                    <div class="timeline-label">Response Received</div>
+                    <div class="timeline-date">{{ selectedQuery.respondedAt | date:'medium' }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Add Reply Section -->
+          @if (selectedQuery.queryStatus !== 'Closed' && selectedQuery.queryStatus !== 'Resolved') {
+            <div class="detail-section">
+              <h6 class="section-title">Add Follow-up</h6>
+              <textarea 
+                class="form-control" 
+                rows="3"
+                [(ngModel)]="replyMessage"
+                placeholder="Add additional information or follow-up..."
+              ></textarea>
+              <button 
+                class="btn btn-primary mt-2" 
+                (click)="submitReply()"
+                [disabled]="isReplying || !replyMessage.trim()"
+              >
+                @if (isReplying) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Send Follow-up
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDetailsModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

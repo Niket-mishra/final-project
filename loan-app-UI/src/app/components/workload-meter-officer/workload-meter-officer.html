@@ -1,52 +1,206 @@
 <div class="workload-meter">
-  <h3 class="text-center fw-bold mb-4">📊 Officer Workload Overview</h3>
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h3 class="fw-bold mb-0">
+        <i class="bi bi-bar-chart-fill text-primary me-2"></i>
+        Officer Workload Overview
+      </h3>
+      @if (!isLoading) {
+        <span class="badge" [ngClass]="getStatusBadgeClass()">
+          {{ getWorkloadStatus() }} Load
+        </span>
+      }
+    </div>
+  </div>
 
   @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading workload data...</p>
+    <div class="loading-container text-center py-5">
+      <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted">Loading workload data...</p>
     </div>
   } @else {
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="summary-card">
+          <div class="icon-wrapper bg-primary-subtle">
+            <i class="bi bi-file-earmark-text text-primary"></i>
+          </div>
+          <div class="card-content">
+            <h6 class="text-muted mb-1">Total Tasks</h6>
+            <h3 class="mb-0">{{ stats.assignedApplications + stats.verifiedDocuments + stats.handledQueries }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="summary-card">
+          <div class="icon-wrapper bg-warning-subtle">
+            <i class="bi bi-hourglass-split text-warning"></i>
+          </div>
+          <div class="card-content">
+            <h6 class="text-muted mb-1">Pending Reviews</h6>
+            <h3 class="mb-0">{{ stats.pendingReviews }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="summary-card">
+          <div class="icon-wrapper bg-success-subtle">
+            <i class="bi bi-check-circle text-success"></i>
+          </div>
+          <div class="card-content">
+            <h6 class="text-muted mb-1">Completion Rate</h6>
+            <h3 class="mb-0">{{ stats.completionRate }}%</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="summary-card">
+          <div class="icon-wrapper bg-info-subtle">
+            <i class="bi bi-clipboard-check text-info"></i>
+          </div>
+          <div class="card-content">
+            <h6 class="text-muted mb-1">Verified Docs</h6>
+            <h3 class="mb-0">{{ stats.verifiedDocuments }}</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Progress Cards -->
     <div class="row g-4">
-      <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm">
+      <div class="col-lg-4 col-md-6">
+        <div class="card workload-card">
           <div class="card-body">
-            <h6 class="card-title">Assigned Applications</h6>
-            <div class="progress">
-              <div class="progress-bar bg-primary" role="progressbar"
-                   [style.width.%]="assignedApplications"
-                   aria-valuenow="{{assignedApplications}}" aria-valuemin="0" aria-valuemax="100">
-                {{ assignedApplications }}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center">
+                <div class="metric-icon bg-primary-subtle me-2">
+                  <i class="bi bi-file-earmark-check text-primary"></i>
+                </div>
+                <h6 class="mb-0">Assigned Applications</h6>
+              </div>
+              <span class="badge bg-light text-dark">{{ stats.assignedApplications }}/{{ targets.applications }}</span>
+            </div>
+            <div class="progress-wrapper">
+              <div class="progress mb-2">
+                <div class="progress-bar" 
+                     [ngClass]="'bg-' + getProgressColor(getProgressPercentage(stats.assignedApplications, targets.applications))"
+                     role="progressbar"
+                     [style.width.%]="getProgressPercentage(stats.assignedApplications, targets.applications)"
+                     [attr.aria-valuenow]="stats.assignedApplications" 
+                     aria-valuemin="0" 
+                     [attr.aria-valuemax]="targets.applications">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Progress</small>
+                <small class="fw-semibold">{{ getProgressPercentage(stats.assignedApplications, targets.applications) }}%</small>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="col-md-4 col-sm-6">
-        <div class="card shadow-sm">
+      <div class="col-lg-4 col-md-6">
+        <div class="card workload-card">
           <div class="card-body">
-            <h6 class="card-title">Verified Documents</h6>
-            <div class="progress">
-              <div class="progress-bar bg-success" role="progressbar"
-                   [style.width.%]="verifiedDocuments"
-                   aria-valuenow="{{verifiedDocuments}}" aria-valuemin="0" aria-valuemax="100">
-                {{ verifiedDocuments }}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center">
+                <div class="metric-icon bg-success-subtle me-2">
+                  <i class="bi bi-shield-check text-success"></i>
+                </div>
+                <h6 class="mb-0">Verified Documents</h6>
+              </div>
+              <span class="badge bg-light text-dark">{{ stats.verifiedDocuments }}/{{ targets.documents }}</span>
+            </div>
+            <div class="progress-wrapper">
+              <div class="progress mb-2">
+                <div class="progress-bar" 
+                     [ngClass]="'bg-' + getProgressColor(getProgressPercentage(stats.verifiedDocuments, targets.documents))"
+                     role="progressbar"
+                     [style.width.%]="getProgressPercentage(stats.verifiedDocuments, targets.documents)"
+                     [attr.aria-valuenow]="stats.verifiedDocuments" 
+                     aria-valuemin="0" 
+                     [attr.aria-valuemax]="targets.documents">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Progress</small>
+                <small class="fw-semibold">{{ getProgressPercentage(stats.verifiedDocuments, targets.documents) }}%</small>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="col-md-4 col-sm-12">
-        <div class="card shadow-sm">
+      <div class="col-lg-4 col-md-6">
+        <div class="card workload-card">
           <div class="card-body">
-            <h6 class="card-title">Handled Queries</h6>
-            <div class="progress">
-              <div class="progress-bar bg-warning" role="progressbar"
-                   [style.width.%]="handledQueries * 10"
-                   aria-valuenow="{{handledQueries}}" aria-valuemin="0" aria-valuemax="100">
-                {{ handledQueries }}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center">
+                <div class="metric-icon bg-warning-subtle me-2">
+                  <i class="bi bi-chat-dots text-warning"></i>
+                </div>
+                <h6 class="mb-0">Handled Queries</h6>
+              </div>
+              <span class="badge bg-light text-dark">{{ stats.handledQueries }}/{{ targets.queries }}</span>
+            </div>
+            <div class="progress-wrapper">
+              <div class="progress mb-2">
+                <div class="progress-bar" 
+                     [ngClass]="'bg-' + getProgressColor(getProgressPercentage(stats.handledQueries, targets.queries))"
+                     role="progressbar"
+                     [style.width.%]="getProgressPercentage(stats.handledQueries, targets.queries)"
+                     [attr.aria-valuenow]="stats.handledQueries" 
+                     aria-valuemin="0" 
+                     [attr.aria-valuemax]="targets.queries">
+                </div>
+              </div>
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">Progress</small>
+                <small class="fw-semibold">{{ getProgressPercentage(stats.handledQueries, targets.queries) }}%</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Insights -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card insights-card">
+          <div class="card-body">
+            <h6 class="fw-semibold mb-3">
+              <i class="bi bi-lightbulb text-warning me-2"></i>
+              Performance Insights
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="insight-item">
+                  <i class="bi bi-arrow-up-circle text-success me-2"></i>
+                  <span class="text-muted">Most Active: </span>
+                  <strong>Document Verification</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="insight-item">
+                  <i class="bi bi-clock-history text-info me-2"></i>
+                  <span class="text-muted">Avg. Response: </span>
+                  <strong>2.5 hours</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="insight-item">
+                  <i class="bi bi-trophy text-warning me-2"></i>
+                  <span class="text-muted">Efficiency: </span>
+                  <strong>{{ stats.completionRate }}%</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -55,3 +209,5 @@
     </div>
   }
 </div>
+
+

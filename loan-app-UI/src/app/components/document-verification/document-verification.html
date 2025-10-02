@@ -1,38 +1,358 @@
 <div class="document-verification container py-4">
-  <h3 class="text-center fw-bold mb-4">📁 Document Verification</h3>
+  <div class="header-section mb-4">
+    <h3 class="fw-bold mb-2">📁 Document Verification</h3>
+    <p class="text-muted">Review and verify customer loan documents</p>
+  </div>
 
-  @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading documents...</p>
+  <!-- Stats Overview -->
+  @if (!isLoading && documents.length > 0) {
+    <div class="stats-overview mb-4">
+      <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ documents.length }}</div>
+          <div class="stat-label">Pending Documents</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getUniqueCustomersCount() }}</div>
+          <div class="stat-label">Unique Customers</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getTodayDocumentsCount() }}</div>
+          <div class="stat-label">Today's Uploads</div>
+        </div>
+      </div>
     </div>
   }
 
-  @if (!isLoading && errorMessage) {
-    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
-  }
-
-  @if (!isLoading && documents.length === 0 && !errorMessage) {
-    <div class="text-center text-muted">No documents pending verification.</div>
-  }
-
+  <!-- Filters -->
   @if (!isLoading && documents.length > 0) {
-    <div class="row g-3">
-      @for (doc of documents; track doc.documentId) {
+    <div class="filters-section mb-4">
+      <div class="row g-3">
         <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <h5 class="fw-bold">{{ doc.documentType }}</h5>
-              <p class="text-muted">Uploaded by: {{ doc.loanApplication?.customer?.firstName }}</p>
-              <p><strong>Uploaded On:</strong> {{ doc.uploadedAt | date:'mediumDate' }}</p>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-success w-50" (click)="verify(doc.documentId)">✅ Verify</button>
-                <button class="btn btn-outline-danger w-50" (click)="reject(doc.documentId)">❌ Reject</button>
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by customer name or document type..."
+              [(ngModel)]="searchTerm"
+              (input)="filterDocuments()"
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="documentTypeFilter" (change)="filterDocuments()">
+            <option value="">All Document Types</option>
+            <option value="Aadhaar">Aadhaar Card</option>
+            <option value="PAN">PAN Card</option>
+            <option value="Income">Income Proof</option>
+            <option value="Bank">Bank Statement</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="sortDocuments()">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="customer">Customer Name</option>
+            <option value="type">Document Type</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading documents...</p>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (!isLoading && errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading && documents.length === 0 && !errorMessage) {
+    <div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <h5>All Caught Up!</h5>
+      <p class="text-muted">No documents pending verification at the moment.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="loadDocuments()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+      </button>
+    </div>
+  }
+
+  <!-- No Results State -->
+  @if (!isLoading && filteredDocuments.length === 0 && documents.length > 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h5>No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  }
+
+  <!-- Documents Grid -->
+  @if (!isLoading && filteredDocuments.length > 0) {
+    <div class="documents-grid">
+      @for (doc of filteredDocuments; track doc.documentId) {
+        <div class="document-card">
+          <!-- Card Header -->
+          <div class="document-header">
+            <div class="document-type">
+              <i class="bi bi-file-earmark-text me-2"></i>
+              {{ doc.documentType }}
+            </div>
+            <span class="document-id">#{{ doc.documentId }}</span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="document-body">
+            <!-- Customer Info -->
+            <div class="customer-info">
+              <div class="customer-avatar">
+                {{ getInitials(doc.loanApplication?.customer?.firstName, doc.loanApplication?.customer?.lastName) }}
+              </div>
+              <div class="customer-details">
+                <div class="customer-name">
+                  {{ doc.loanApplication?.customer?.firstName }} {{ doc.loanApplication?.customer?.lastName }}
+                </div>
+                <div class="customer-meta">
+                  <i class="bi bi-envelope me-1"></i>
+                  {{ doc.loanApplication?.customer?.user?.email || 'N/A' }}
+                </div>
               </div>
             </div>
+
+            <!-- Document Details -->
+            <div class="document-details">
+              <div class="detail-row">
+                <span class="detail-label">
+                  <i class="bi bi-calendar3"></i> Upload Date
+                </span>
+                <span class="detail-value">
+                  {{ doc.uploadedAt | date:'MMM d, y' }}
+                </span>
+              </div>
+
+              <div class="detail-row">
+                <span class="detail-label">
+                  <i class="bi bi-clock"></i> Upload Time
+                </span>
+                <span class="detail-value">
+                  {{ doc.uploadedAt | date:'shortTime' }}
+                </span>
+              </div>
+
+              @if (doc.loanApplication?.loan?.loanId) {
+                <div class="detail-row">
+                  <span class="detail-label">
+                    <i class="bi bi-file-text"></i> Loan ID
+                  </span>
+                  <span class="detail-value">
+                    #{{ doc.loanApplication?.loan?.loanId }}
+                  </span>
+                </div>
+              }
+
+              @if (doc.filePath) {
+                <div class="detail-row">
+                  <span class="detail-label">
+                    <i class="bi bi-paperclip"></i> File
+                  </span>
+                  <span class="detail-value file-name">
+                    {{ getFileName(doc.filePath) }}
+                  </span>
+                </div>
+              }
+
+              <div class="detail-row">
+                <span class="detail-label">
+                  <i class="bi bi-hourglass-split"></i> Waiting Time
+                </span>
+                <span class="detail-value" [class.urgent]="isUrgent(doc.uploadedAt.toISOString())">
+                  {{ getWaitingTime(doc.uploadedAt.toISOString()) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Document Preview (if available) -->
+            @if (doc.filePath && isImageFile(doc.filePath)) {
+              <div class="document-preview">
+                <img [src]="doc.filePath" [alt]="doc.documentType" />
+                <div class="preview-overlay" (click)="viewDocument(doc)">
+                  <i class="bi bi-eye"></i> View Full Size
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Card Footer -->
+          <div class="document-footer">
+            <button 
+              class="btn btn-outline-secondary btn-sm" 
+              (click)="viewDocument(doc)"
+              [disabled]="processingDocId === doc.documentId"
+            >
+              <i class="bi bi-eye me-1"></i>View
+            </button>
+            <button 
+              class="btn btn-success btn-sm flex-grow-1" 
+              (click)="openVerifyModal(doc)"
+              [disabled]="processingDocId === doc.documentId"
+            >
+              @if (processingDocId === doc.documentId && processingAction === 'verify') {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              } @else {
+                <i class="bi bi-check-circle me-1"></i>
+              }
+              Verify
+            </button>
+            <button 
+              class="btn btn-danger btn-sm flex-grow-1" 
+              (click)="openRejectModal(doc)"
+              [disabled]="processingDocId === doc.documentId"
+            >
+              @if (processingDocId === doc.documentId && processingAction === 'reject') {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              } @else {
+                <i class="bi bi-x-circle me-1"></i>
+              }
+              Reject
+            </button>
           </div>
         </div>
       }
     </div>
   }
 </div>
+
+<!-- Verify Modal -->
+@if (showVerifyModal && selectedDocument) {
+  <div class="modal-backdrop" (click)="closeModals()"></div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-check-circle text-success me-2"></i>
+          Verify Document
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModals()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to verify this document?</p>
+        <div class="document-summary">
+          <div><strong>Document Type:</strong> {{ selectedDocument.documentType }}</div>
+          <div><strong>Customer:</strong> {{ selectedDocument.loanApplication?.customer?.firstName }}</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Remarks (Optional)</label>
+          <textarea 
+            class="form-control" 
+            rows="3" 
+            [(ngModel)]="verifyRemarks"
+            placeholder="Add any verification notes..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancel</button>
+        <button 
+          type="button" 
+          class="btn btn-success" 
+          (click)="confirmVerify()"
+          [disabled]="isProcessing"
+        >
+          @if (isProcessing) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Confirm Verification
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reject Modal -->
+@if (showRejectModal && selectedDocument) {
+  <div class="modal-backdrop" (click)="closeModals()"></div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-x-circle text-danger me-2"></i>
+          Reject Document
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModals()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Please provide a reason for rejecting this document.</p>
+        <div class="document-summary">
+          <div><strong>Document Type:</strong> {{ selectedDocument.documentType }}</div>
+          <div><strong>Customer:</strong> {{ selectedDocument.loanApplication?.customer?.firstName }}</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+          <select class="form-select mb-2" [(ngModel)]="rejectReason">
+            <option value="">Select a reason</option>
+            <option value="Unclear Image">Unclear/Blurry Image</option>
+            <option value="Expired Document">Expired Document</option>
+            <option value="Wrong Document">Wrong Document Type</option>
+            <option value="Incomplete Information">Incomplete Information</option>
+            <option value="Mismatch">Information Mismatch</option>
+            <option value="Other">Other</option>
+          </select>
+          @if (rejectReason === 'Other' || rejectReason) {
+            <textarea 
+              class="form-control" 
+              rows="3" 
+              [(ngModel)]="rejectRemarks"
+              placeholder="Add detailed comments..."
+              [required]="rejectReason === 'Other'"
+            ></textarea>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModals()">Cancel</button>
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          (click)="confirmReject()"
+          [disabled]="isProcessing || !rejectReason"
+        >
+          @if (isProcessing) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Confirm Rejection
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

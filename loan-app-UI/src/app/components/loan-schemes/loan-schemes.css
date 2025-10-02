@@ -1,5 +1,6 @@
 .scheme-container {
 	max-width: 1080px;
+	min-height: auto;
 	margin: 0 auto;
 	padding: 1rem;
 }

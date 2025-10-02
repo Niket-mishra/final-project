@@ -51,6 +51,14 @@ export const routes: Routes = [
         loadComponent: () => import('./components/loan-officers/loan-officers').then(m => m.LoanOfficers)
       },
       {
+        path: 'loan-officers/create',
+        loadComponent: () => import('./components/officer-manager-component/officer-manager-component').then(m => m.OfficerManagerComponent)
+      },
+      {
+        path: 'loan-officers/:id/edit',
+        loadComponent: () => import('./components/officer-manager-component/officer-manager-component').then(m => m.OfficerManagerComponent)
+      },
+      {
         path: 'users',
         loadComponent: () => import('./components/user-management/user-management').then(m => m.UserManagement)
       },
@@ -71,9 +79,18 @@ export const routes: Routes = [
         loadComponent: () => import('./components/assign-officer/assign-officer').then(m => m.AssignOfficerComponent)
       },
       {
-        path: 'officer-manager',
-        loadComponent: () => import('./components/officer-manager-component/officer-manager-component').then(m => m.OfficerManagerComponent)
+        path: 'customers',
+        loadComponent: () => import('./components/customers/customers').then(m => m.Customers)
       },
+      {
+        path: 'customers/:id',
+        loadComponent: () => import('./components/customer-details/customer-details').then(m => m.CustomerDetails)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./components/admin-profile-component/admin-profile-component').then(m => m.AdminProfileComponent)
+      },
+      
       {
         path: 'workload-meter',
         loadComponent: () => import('./components/workload-meter-component/workload-meter-component').then(m => m.WorkloadMeterComponent)
@@ -89,8 +106,44 @@ export const routes: Routes = [
       {
         path: 'feedback-history',
         loadComponent: () => import('./components/admin-feedback-history/admin-feedback-history').then(m => m.AdminFeedbackHistory)
+      },
+      {
+        path: 'loan-list',
+        loadComponent: () => import('./components/loans/loans').then(m => m.Loans)
+      },
+      {
+        path: 'loan-details/:id',
+        loadComponent: () => import('./components/loan-details/loan-details').then(m => m.LoanDetails)
+      },
+      {
+        path: 'application-list',
+        loadComponent: () => import('./components/loan-application/loan-application').then(m => m.LoanApplications)
+      },
+      {
+        path: 'application-details/:id',
+        loadComponent: () => import('./components/application-details/application-details').then(m => m.ApplicationDetails)
+      },
+      {
+        path: 'document-list',
+        loadComponent: () => import('./components/documents/documents').then(m => m.Documents)
+      },
+      {
+        path: 'document-details/:id',
+        loadComponent: () => import('./components/document-details/document-details').then(m => m.DocumentDetails)
+      },
+      {
+        path: 'repayment-history',
+        loadComponent: () => import('./components/repayments/repayments').then(m => m.Repayments)
+      },
+      {
+        path: 'make-payment',
+        loadComponent: () => import('./components/make-payment/make-payment').then(m => m.MakePayment)
+      },
+      {
+        path: 'customer-queries',
+        loadComponent: () => import('./components/customer-queries/customer-queries').then(m => m.CustomerQueries)
       }
-    ]
+    ] 
   },
 
   // 🧑‍💼 LOAN OFFICER ROUTES (With Officer Layout)
@@ -293,10 +346,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { roles: [Role.Customer, Role.LoanOfficer, Role.Admin] },
     children: [
-      {
-        path: 'list',
-        loadComponent: () => import('./components/loans/loans').then(m => m.Loans)
-      },
+      
       {
         path: 'details/:id',
         loadComponent: () => import('./components/loan-details/loan-details').then(m => m.LoanDetails)

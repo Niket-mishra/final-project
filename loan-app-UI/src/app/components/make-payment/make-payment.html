@@ -1,27 +1,146 @@
-<!-- src/app/components/make-payment.html -->
 <div class="make-payment container py-4">
-  <h3 class="text-center fw-bold mb-4">💳 Make a Payment</h3>
-
-  @if (successMessage) {
-    <div class="alert alert-success text-center">{{ successMessage }}</div>
-  }
-
-  @if (errorMessage) {
-    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
-  }
-
-  <form class="payment-form" (ngSubmit)="submitPayment()" #form="ngForm">
-    <div class="mb-3">
-      <label class="form-label">Amount (₹)</label>
-      <input type="number" class="form-control" [(ngModel)]="amount" name="amount" required min="1" />
+  <div class="payment-card">
+    <div class="text-center mb-4">
+      <div class="payment-icon">💳</div>
+      <h3 class="fw-bold mb-2">Make a Payment</h3>
+      <p class="text-muted">Secure payment powered by Razorpay</p>
     </div>
 
-    <button type="submit" class="btn btn-primary w-100" [disabled]="isSubmitting">
-      @if (isSubmitting) {
-        <span class="spinner-border spinner-border-sm me-2"></span> Processing...
-      } @else {
-        Pay with Razorpay
+    @if (successMessage) {
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      </div>
+    }
+
+    <form class="payment-form" (ngSubmit)="submitPayment()" #form="ngForm">
+      <!-- Amount Input -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">
+          Payment Amount <span class="text-danger">*</span>
+        </label>
+        <div class="input-group input-group-lg">
+          <span class="input-group-text">₹</span>
+          <input 
+            type="number" 
+            class="form-control" 
+            [(ngModel)]="amount" 
+            name="amount" 
+            required 
+            min="1" 
+            max="1000000"
+            placeholder="Enter amount"
+            [class.is-invalid]="form.submitted && amount <= 0"
+            (input)="clearMessages()"
+          />
+        </div>
+        @if (form.submitted && amount <= 0) {
+          <div class="invalid-feedback d-block">
+            Please enter a valid amount (minimum ₹1)
+          </div>
+        }
+        @if (amount > 0) {
+          <div class="form-text">
+            Processing fee: ₹{{ calculateProcessingFee() }} | Total: ₹{{ amount + calculateProcessingFee() }}
+          </div>
+        }
+      </div>
+
+      <!-- Quick Amount Buttons -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Quick Select</label>
+        <div class="quick-amounts">
+          @for (quickAmount of quickAmounts; track quickAmount) {
+            <button 
+              type="button" 
+              class="btn btn-outline-secondary"
+              [class.active]="amount === quickAmount"
+              (click)="setAmount(quickAmount)"
+              [disabled]="isSubmitting"
+            >
+              ₹{{ quickAmount }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Customer Info Preview -->
+      @if (customerInfo) {
+        <div class="customer-info-card mb-4">
+          <h6 class="fw-semibold mb-2">Payment Details</h6>
+          <div class="info-row">
+            <span class="label">Name:</span>
+            <span class="value">{{ customerInfo.name }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Email:</span>
+            <span class="value">{{ customerInfo.email }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Phone:</span>
+            <span class="value">{{ customerInfo.phone }}</span>
+          </div>
+        </div>
       }
-    </button>
-  </form>
+
+      <!-- Terms Checkbox -->
+      <div class="mb-4">
+        <div class="form-check">
+          <input 
+            class="form-check-input" 
+            type="checkbox" 
+            [(ngModel)]="agreedToTerms" 
+            name="terms"
+            id="termsCheck"
+            required
+          />
+          <label class="form-check-label" for="termsCheck">
+            I agree to the <a href="#" class="text-decoration-none">terms and conditions</a>
+          </label>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-lg w-100" 
+        [disabled]="isSubmitting || !agreedToTerms || amount <= 0"
+      >
+        @if (isSubmitting) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Processing Payment...
+        } @else {
+          <i class="bi bi-shield-check me-2"></i>
+          Proceed to Secure Payment
+        }
+      </button>
+
+      <!-- Security Badge -->
+      <div class="text-center mt-3">
+        <small class="text-muted">
+          <i class="bi bi-lock-fill me-1"></i>
+          Secured by 256-bit SSL encryption
+        </small>
+      </div>
+    </form>
+
+    <!-- Payment Methods Info -->
+    <div class="payment-methods mt-4">
+      <p class="text-center text-muted mb-2">Accepted Payment Methods</p>
+      <div class="methods-icons">
+        <span title="Credit Cards">💳</span>
+        <span title="Debit Cards">🏦</span>
+        <span title="UPI">📱</span>
+        <span title="Net Banking">🌐</span>
+        <span title="Wallets">👛</span>
+      </div>
+    </div>
+  </div>
 </div>

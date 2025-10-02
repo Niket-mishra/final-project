@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Customer } from '../models/customer';
+import { Customer, VerificationStatus } from '../models/customer';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerService {
+  
   private readonly apiUrl = 'https://localhost:7262/api/Customers';
 
   constructor(private http: HttpClient) {}
@@ -35,5 +36,9 @@ export class CustomerService {
   }
   getCurrentCustomer(): Observable<Customer> {
     return this.http.get<Customer>(`${this.apiUrl}/me`);
+  }
+
+  updateCustomerStatus(id: number, status: VerificationStatus, remarks?: string): Observable<Customer> {
+    return this.http.patch<Customer>(`${this.apiUrl}/${id}/status`, { status, remarks });
   }
 }

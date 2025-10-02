@@ -2,6 +2,8 @@ import { Customer } from "./customer";
 import { LoanOfficer } from "./loan-officer";
 
 export interface CustomerQuery {
+  respondedAt: Date;
+  priority: Priority;
   queryId: number;
   customerId: number;
   officerId?: number;
@@ -21,4 +23,9 @@ export enum QueryStatus {
   InProgress = 'InProgress',
   Resolved = 'Resolved',
   Closed = 'Closed'
+}
+export enum Priority {
+  Low = 'Low',
+  Medium = 'Medium',
+  High = 'High'
 }

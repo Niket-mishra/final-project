@@ -1,33 +1,510 @@
-<div class="user-management-container container py-5">
-  <h2 class="text-center fw-bold mb-4 animate__animated animate__fadeInDown">👥 User Management</h2>
 
-  @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-3 text-muted">Loading users...</p>
-    </div>
-  } @else {
-    @if (users.length === 0) {
-      <p class="text-muted text-center animate__animated animate__fadeIn">No users found.</p>
-    } @else {
-      <div class="row">
-        @for (user of users; track user.userId) {
-          <div class="col-md-6 mb-4 animate__animated animate__fadeInUp">
-            <div class="card shadow-sm border-0 rounded-4 user-card">
-              <div class="card-body">
-                <h5 class="card-title fw-bold">{{ user.username }}</h5>
-                <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
-                <p class="mb-1"><strong>Role:</strong> {{ user.role }}</p>
 
-                <button class="btn btn-outline-dark w-100 mt-3 rounded-3 shadow-sm"
-                        (click)="toggleRole(user)">
-                  🔄 Toggle Role
-                </button>
-              </div>
-            </div>
-          </div>
-        }
+<div class="user-management-container container py-4">
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="fw-bold mb-2">User Management</h2>
+        <p class="text-muted mb-0">Manage system users and their roles</p>
       </div>
-    }
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle me-2"></i>Add New User
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  @if (!isLoading && users.length > 0) {
+    <div class="stats-overview mb-4">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="bi bi-people"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getActiveUsersCount() }}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-danger">
+          <i class="bi bi-shield-fill-check"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getUsersByRole(Role.Admin) }}</div>
+          <div class="stat-label">Admins</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-info">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getUsersByRole(Role.LoanOfficer) }}</div>
+          <div class="stat-label">Officers</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ getUsersByRole(Role.Customer) }}</div>
+          <div class="stat-label">Customers</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading && users.length > 0) {
+    <div class="filters-section mb-4">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by name, email, or phone..."
+              [(ngModel)]="searchTerm"
+              (input)="filterUsers()"
+            />
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="roleFilter" (change)="filterUsers()">
+            <option value="">All Roles</option>
+            <option [value]="Role.Admin">Admin</option>
+            <option [value]="Role.LoanOfficer">Loan Officer</option>
+            <option [value]="Role.Customer">Customer</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="sortUsers()">
+            <option value="username">Name</option>
+            <option value="email">Email</option>
+            <option value="role">Role</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-2"></i>Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-3">Loading users...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (users.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-people"></i>
+      </div>
+      <h5>No Users Found</h5>
+      <p class="text-muted">Start by creating your first user.</p>
+      <button class="btn btn-primary mt-3" (click)="openCreateModal()">
+        <i class="bi bi-plus-circle me-2"></i>Create First User
+      </button>
+    </div>
+  }
+
+  <!-- No Results State -->
+  @else if (filteredUsers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5>No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  }
+
+  <!-- Users Table -->
+  @else {
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Created</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers; track user.userId) {
+            <tr>
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">
+                    {{ user.username[0].toUpperCase() }}
+                  </div>
+                  <div>
+                    <div class="user-name">{{ user.username }}</div>
+                    <small class="text-muted">#{{ user.userId }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.phoneNumber || '—' }}</td>
+              <td>
+                <span class="badge role-badge" [class]="'bg-' + getRoleColor(user.role)">
+                  <i [class]="getRoleIcon(user.role) + ' me-1'"></i>
+                  {{ user.role }}
+                </span>
+              </td>
+              <td>
+                <small>{{ user.createdAt | date:'MMM d, y' }}</small>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button 
+                    class="btn btn-sm btn-outline-primary" 
+                    (click)="openViewModal(user)"
+                    title="View Details"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-secondary" 
+                    (click)="openEditModal(user)"
+                    title="Edit User"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-info" 
+                    (click)="toggleRole(user)"
+                    title="Toggle Role"
+                  >
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-danger" 
+                    (click)="openDeleteModal(user)"
+                    title="Delete User"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 </div>
+
+<!-- Create User Modal -->
+@if (showCreateModal) {
+  <div class="modal-backdrop" (click)="closeCreateModal()"></div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-person-plus text-primary me-2"></i>
+          Create New User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeCreateModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="createUser()" #createForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label">Username <span class="text-danger">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="userForm.username"
+              name="username"
+              required
+              placeholder="Enter username"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input 
+              type="email" 
+              class="form-control" 
+              [(ngModel)]="userForm.email"
+              name="email"
+              required
+              placeholder="user@example.com"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input 
+              type="tel" 
+              class="form-control" 
+              [(ngModel)]="userForm.phoneNumber"
+              name="phone"
+              placeholder="+91 98765 43210"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Role <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="userForm.role" name="role" required>
+              @for (option of roleOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Password <span class="text-danger">*</span></label>
+            <input 
+              type="password" 
+              class="form-control" 
+              [(ngModel)]="userForm.password"
+              name="password"
+              required
+              minlength="6"
+              placeholder="Minimum 6 characters"
+            />
+            <small class="form-text text-muted">Password must be at least 6 characters long</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeCreateModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="createUser()"
+          [disabled]="isSubmitting"
+        >
+          @if (isSubmitting) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Create User
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit User Modal -->
+@if (showEditModal && selectedUser) {
+  <div class="modal-backdrop" (click)="closeEditModal()"></div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-pencil text-secondary me-2"></i>
+          Edit User
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="updateUser()" #editForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label">Username <span class="text-danger">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="userForm.username"
+              name="username"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input 
+              type="email" 
+              class="form-control" 
+              [(ngModel)]="userForm.email"
+              name="email"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <input 
+              type="tel" 
+              class="form-control" 
+              [(ngModel)]="userForm.phoneNumber"
+              name="phone"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Role <span class="text-danger">*</span></label>
+            <select class="form-select" [(ngModel)]="userForm.role" name="role" required>
+              @for (option of roleOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Leave password field empty to keep the current password
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="updateUser()"
+          [disabled]="isSubmitting"
+        >
+          @if (isSubmitting) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          Update User
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- View User Modal -->
+@if (showViewModal && selectedUser) {
+  <div class="modal-backdrop" (click)="closeViewModal()"></div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-eye text-info me-2"></i>
+          User Details
+        </h5>
+        <button type="button" class="btn-close" (click)="closeViewModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="user-details">
+          <div class="detail-avatar">
+            {{ selectedUser.username[0].toUpperCase() }}
+          </div>
+
+          <div class="detail-section">
+            <h6 class="section-title">Basic Information</h6>
+            <div class="detail-row">
+              <span class="detail-label">User ID:</span>
+              <span class="detail-value">#{{ selectedUser.userId }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Username:</span>
+              <span class="detail-value">{{ selectedUser.username }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Email:</span>
+              <span class="detail-value">{{ selectedUser.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Phone:</span>
+              <span class="detail-value">{{ selectedUser.phoneNumber || '—' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Role:</span>
+              <span class="badge" [class]="'bg-' + getRoleColor(selectedUser.role)">
+                <i [class]="getRoleIcon(selectedUser.role) + ' me-1'"></i>
+                {{ selectedUser.role }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h6 class="section-title">Timeline</h6>
+            <div class="detail-row">
+              <span class="detail-label">Created:</span>
+              <span class="detail-value">{{ selectedUser.createdAt | date:'medium' }}</span>
+            </div>
+            @if (selectedUser.updatedAt) {
+              <div class="detail-row">
+                <span class="detail-label">Last Updated:</span>
+                <span class="detail-value">{{ selectedUser.updatedAt | date:'medium' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeViewModal()">
+          Close
+        </button>
+        <button type="button" class="btn btn-primary" (click)="openEditModal(selectedUser); closeViewModal()">
+          <i class="bi bi-pencil me-2"></i>Edit User
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal && selectedUser) {
+  <div class="modal-backdrop" (click)="closeDeleteModal()"></div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center py-3">
+          <div class="delete-icon">
+            <i class="bi bi-trash"></i>
+          </div>
+          <h6 class="mt-3">Are you sure you want to delete this user?</h6>
+          <div class="user-info-delete mt-3">
+            <strong>{{ selectedUser.username }}</strong><br>
+            <small class="text-muted">{{ selectedUser.email }}</small>
+          </div>
+          <div class="alert alert-warning mt-3">
+            <i class="bi bi-info-circle me-2"></i>
+            This action will soft delete the user. The user will be marked as deleted but data will be preserved.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger" 
+          (click)="confirmDelete()"
+          [disabled]="isDeleting"
+        >
+          @if (isDeleting) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          }
+          <i class="bi bi-trash me-2"></i>
+          Delete User
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

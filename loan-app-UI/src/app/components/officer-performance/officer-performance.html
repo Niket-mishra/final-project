@@ -1,27 +1,310 @@
-<div class="card shadow-sm p-4 text-center">
+<div class="performance-container">
   @if (isLoading) {
-    <div class="spinner-border text-primary" role="status"></div>
-    <p class="mt-2">Loading performance...</p>
+    <div class="loading-section">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Loading performance data...</p>
+    </div>
   } @else {
-    <h5 class="fw-bold mb-3">📈 Performance Overview</h5>
-
-    <p><strong>Designation:</strong> {{ officer.designation }}</p>
-    <p><strong>City:</strong> {{ officer.city }}</p>
-
-    <div class="mb-3">
-      <strong>Current Workload:</strong>
-      <span class="badge bg-secondary">{{ officer.currentWorkload }} / {{ officer.maxLoansAssigned }}</span>
+    <!-- Header Section -->
+    <div class="performance-header">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h4 class="fw-bold mb-1">
+            <i class="bi bi-person-badge text-primary me-2"></i>
+            Performance Dashboard
+          </h4>
+          <p class="text-muted mb-0">Track your productivity and achievements</p>
+        </div>
+        <button class="btn btn-primary" (click)="exportReport()">
+          <i class="bi bi-download me-2"></i>Export Report
+        </button>
+      </div>
     </div>
 
-    <div class="mb-3">
-      <strong>Rating:</strong>
-      <span class="badge bg-{{ getRatingColor() }}">{{ officer.performanceRating ?? 'N/A' }}</span>
+    <!-- Overview Cards -->
+    <div class="row g-4 mb-4">
+      <!-- Officer Info Card -->
+      <div class="col-lg-4">
+        <div class="card info-card">
+          <div class="card-body">
+            <div class="text-center mb-4">
+              <div class="officer-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <h5 class="fw-bold mt-3 mb-1">{{ officer.user.username || 'Officer' }}</h5>
+              <p class="text-muted mb-2">{{ officer.designation }}</p>
+              <span class="badge bg-primary-subtle text-primary">
+                <i class="bi bi-geo-alt me-1"></i>{{ officer.city }}
+              </span>
+            </div>
+
+            <div class="info-divider"></div>
+
+            <div class="info-item">
+              <span class="info-label">
+                <i class="bi bi-star-fill text-warning me-2"></i>Performance Rating
+              </span>
+              <div class="d-flex align-items-center mt-2">
+                <div class="star-rating me-2">
+                  @for (star of getRatingStars(); track $index) {
+                    <i class="bi" [ngClass]="star ? 'bi-star-fill text-warning' : 'bi-star text-muted'"></i>
+                  }
+                </div>
+                <span class="badge" [ngClass]="'bg-' + getRatingColor()">
+                  {{ officer.performanceRating ?? 'N/A' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="info-item mt-3">
+              <span class="info-label">
+                <i class="bi bi-briefcase me-2"></i>Current Workload
+              </span>
+              <div class="mt-2">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="small">{{ officer.currentWorkload }} / {{ officer.maxLoansAssigned }} cases</span>
+                  <span class="small fw-semibold">{{ getWorkloadPercentage() }}%</span>
+                </div>
+                <div class="progress" style="height: 8px;">
+                  <div class="progress-bar" 
+                       [ngClass]="'bg-' + getWorkloadColorClass()"
+                       [style.width.%]="getWorkloadPercentage()"
+                       role="progressbar">
+                  </div>
+                </div>
+                <div class="mt-1">
+                  <span class="badge badge-sm" [ngClass]="'bg-' + getWorkloadColorClass() + '-subtle text-' + getWorkloadColorClass()">
+                    {{ getWorkloadStatus() }} Load
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Metrics -->
+      <div class="col-lg-8">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6 col-md-3">
+            <div class="metric-card bg-primary-gradient">
+              <div class="metric-icon">
+                <i class="bi bi-file-earmark-text"></i>
+              </div>
+              <div class="metric-content">
+                <h3 class="metric-value">{{ performanceMetrics.totalApplications }}</h3>
+                <p class="metric-label">Total Applications</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-md-3">
+            <div class="metric-card bg-success-gradient">
+              <div class="metric-icon">
+                <i class="bi bi-check-circle"></i>
+              </div>
+              <div class="metric-content">
+                <h3 class="metric-value">{{ performanceMetrics.approvedApplications }}</h3>
+                <p class="metric-label">Approved</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-md-3">
+            <div class="metric-card bg-warning-gradient">
+              <div class="metric-icon">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="metric-content">
+                <h3 class="metric-value">{{ performanceMetrics.pendingApplications }}</h3>
+                <p class="metric-label">Pending</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-md-3">
+            <div class="metric-card bg-danger-gradient">
+              <div class="metric-icon">
+                <i class="bi bi-x-circle"></i>
+              </div>
+              <div class="metric-content">
+                <h3 class="metric-value">{{ performanceMetrics.rejectedApplications }}</h3>
+                <p class="metric-label">Rejected</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h6 class="text-muted mb-1">Approval Rate</h6>
+                    <h2 class="fw-bold mb-0">{{ getApprovalRate() }}%</h2>
+                  </div>
+                  <div class="stat-icon bg-success-subtle">
+                    <i class="bi bi-graph-up-arrow text-success"></i>
+                  </div>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-success" 
+                       [style.width.%]="getApprovalRate()" 
+                       role="progressbar">
+                  </div>
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                  <i class="bi bi-arrow-up text-success me-1"></i>
+                  5% higher than average
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h6 class="text-muted mb-1">Avg. Processing Time</h6>
+                    <h2 class="fw-bold mb-0">{{ performanceMetrics.averageProcessingTime }} <small class="fs-6">days</small></h2>
+                  </div>
+                  <div class="stat-icon bg-info-subtle">
+                    <i class="bi bi-speedometer2 text-info"></i>
+                  </div>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-info" 
+                       style="width: 65%" 
+                       role="progressbar">
+                  </div>
+                </div>
+                <p class="small text-muted mt-2 mb-0">
+                  <i class="bi bi-arrow-down text-success me-1"></i>
+                  15% faster than target
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h6 class="text-muted mb-1">Customer Satisfaction</h6>
+                    <h2 class="fw-bold mb-0">{{ performanceMetrics.satisfactionScore }}/5.0</h2>
+                  </div>
+                  <div class="stat-icon bg-warning-subtle">
+                    <i class="bi bi-emoji-smile text-warning"></i>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="flex-grow-1">
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar bg-warning" 
+                           [style.width.%]="(performanceMetrics.satisfactionScore / 5) * 100" 
+                           role="progressbar">
+                      </div>
+                    </div>
+                  </div>
+                  <span class="badge bg-warning-subtle text-warning ms-3">Excellent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <button class="btn btn-outline-primary btn-sm">View Audit Log</button>
-      <button class="btn btn-outline-success btn-sm ms-2">Send Feedback</button>
+    <!-- Workload Meter  -->
+    <div class="mb-4">
+      <div class="card workload-meter-card">
+        <div class="card-body workload-header">
+          <h6 class="fw-semibold mb-3">
+            <i class="bi bi-speedometer2 text-primary me-2"></i>
+            Workload Meter
+          </h6>
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <div class="progress" style="height: 18px;">
+                <div class="progress-bar" 
+                     [ngClass]="'bg-' + getWorkloadColorClass()" 
+                     [style.width.%]="getWorkloadPercentage()" 
+                     role="progressbar"
+                     aria-valuenow="{{ getWorkloadPercentage() }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                  {{ getWorkloadPercentage() }}%
+                </div>
+              </div>
+            </div>
+            <span class="badge ms-3" [ngClass]="'bg-' + getWorkloadColorClass() + '-subtle text-' + getWorkloadColorClass()">
+              {{ getWorkloadStatus() }}
+            </span>
+          </div>
+          <p class="small text-muted mt-2 mb-0">
+            Current workload: {{ officer.currentWorkload }} out of {{ officer.maxLoansAssigned }} cases assigned.
+          </p>
+        </div>
+      </div>
     </div>
-    <app-workload-meter-component [officer]="officer"></app-workload-meter-component>
+
+    <!-- Action Buttons -->
+    <div class="card action-card">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <h6 class="fw-semibold mb-2">Need Help or Want to Share Feedback?</h6>
+            <p class="text-muted small mb-0">Access your audit log or provide feedback to improve our services</p>
+          </div>
+          <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-outline-primary me-2" (click)="viewAuditLog()">
+              <i class="bi bi-file-text me-2"></i>View Audit Log
+            </button>
+            <button class="btn btn-success" (click)="sendFeedback()">
+              <i class="bi bi-chat-square-text me-2"></i>Send Feedback
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Timeline -->
+    <div class="card">
+      <div class="card-body">
+        <h6 class="fw-semibold mb-4">
+          <i class="bi bi-clock-history text-primary me-2"></i>Recent Activity
+        </h6>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-marker bg-success"></div>
+            <div class="timeline-content">
+              <p class="mb-1"><strong>Application Approved</strong></p>
+              <p class="small text-muted mb-0">Loan #LN-2024-1523 • 2 hours ago</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-marker bg-info"></div>
+            <div class="timeline-content">
+              <p class="mb-1"><strong>Document Verified</strong></p>
+              <p class="small text-muted mb-0">Application #APP-8932 • 5 hours ago</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-marker bg-warning"></div>
+            <div class="timeline-content">
+              <p class="mb-1"><strong>Query Resolved</strong></p>
+              <p class="small text-muted mb-0">Ticket #TKT-4521 • 1 day ago</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   }
 </div>
+

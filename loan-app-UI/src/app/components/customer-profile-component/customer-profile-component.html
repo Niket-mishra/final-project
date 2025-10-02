@@ -1,125 +1,526 @@
-<div class="profile-container" role="region" aria-label="Customer profile">
-	@if (loading()) {
-		<div class="loader" aria-live="polite">⏳ Loading profile…</div>
-	}
-	@if (error()) {
-		<div class="alert alert-danger text-center rounded-4 shadow-sm" role="alert">
-			❌ Couldn’t load customer profile. <span class="visually-hidden">Error:</span> {{ error() }}
-		</div>
-	}
-	@if (!loading() && !error() && customer()) {
-		<div class="profile-card" tabindex="0">
-			<!-- Left: Avatar & Name -->
-			<div class="profile-left">
-				<div class="avatar" aria-hidden="true">
-					 {{customer()!.firstName[0] || 'U'}}  {{customer()!.lastName[0] || '' }}
-				</div>
-				<h3 class="profile-name" [attr.aria-label]="'Name ' + (customer()!.firstName || '') + ' ' + (customer()!.lastName || '')">
-					 {{customer()!.firstName }} {{ customer()!.lastName }}
-				</h3>
-				<span
-					class="badge status-badge"
-					[ngClass]="'bg-' + getStatusColor(customer()!.verificationStatus)"
-					aria-live="polite"
-				>
-					 {{customer()!.verificationStatus }}
-				</span>
-			</div>
 
-			<!-- Right: Info -->
-			<div class="profile-right">
-				<div class="info-grid">
-					<div class="info-item">
-						<i class="bi bi-gender-ambiguous" aria-hidden="true"></i>
-						<span><b>Gender:</b> {{customer()!.gender }}</span>
-					</div>
 
-					<div class="info-item">
-						<i class="bi bi-geo-alt" aria-hidden="true"></i>
-						<span><b>City:</b> {{customer()!.city || '—' }}</span>
-					</div>
+<div class="customer-profile container py-4">
+  <div class="profile-header mb-4">
+    <h3 class="fw-bold mb-2">👤 Customer Profile</h3>
+    <p class="text-muted">Manage your account and personal information</p>
+  </div>
 
-					<div class="info-item">
-						<i class="bi bi-briefcase" aria-hidden="true"></i>
-						<span><b>Occupation:</b> {{customer()!.occupation || '—' }}</span>
-					</div>
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+  }
 
-					<div class="info-item">
-						<i class="bi bi-cash-coin" aria-hidden="true"></i>
-						<span><b>Annual Income: </b>₹ {{customer()!.annualIncome | number:'1.0-0'}} </span>
-					</div>
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
 
-					<div class="info-item">
-						<i class="bi bi-bar-chart-line" aria-hidden="true"></i>
-						<span><b>Credit Score: </b> {{customer()!.creditScore || '—' }}</span>
-					</div>
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Loading profile...</p>
+    </div>
+  } @else {
+    <div class="row g-4">
+      <!-- Left Column - Profile Card -->
+      <div class="col-lg-4">
+        <div class="profile-card">
+          <!-- Avatar Section -->
+          <div class="avatar-section">
+            <div class="avatar-container">
+              @if (customerProfile.avatarUrl) {
+                <img [src]="customerProfile.avatarUrl" alt="Customer Avatar" class="avatar-img" />
+              } @else {
+                <div class="avatar-placeholder">
+                  {{ getInitials() }}
+                </div>
+              }
+              <button class="avatar-edit-btn" (click)="openAvatarUpload()">
+                <i class="bi bi-camera-fill"></i>
+              </button>
+              <input 
+                type="file" 
+                #avatarInput 
+                accept="image/*" 
+                (change)="onAvatarChange($event)"
+                style="display: none"
+              />
+            </div>
+            <h4 class="mt-3 mb-1">{{ customerProfile.firstName }} {{ customerProfile.lastName }}</h4>
+            <p class="text-muted mb-2">{{ customerProfile.occupation || 'Customer' }}</p>
+            <span class="status-badge" [class]="'status-' + getStatusBadge()">
+              <i class="bi bi-circle-fill me-1"></i>{{ customerProfile.verificationStatusText }}
+            </span>
+          </div>
 
-					<div class="info-item">
-						<i class="bi bi-credit-card" aria-hidden="true"></i>
-						<span><b>PAN:  </b>{{customer()!.panMasked ?? '—' }}</span>
-					</div>
+          <!-- Quick Stats -->
+          <div class="quick-stats">
+            <div class="stat-item">
+              <div class="stat-icon">💰</div>
+              <div class="stat-content">
+                <div class="stat-label">Annual Income</div>
+                <div class="stat-value">₹{{ customerProfile.annualIncome | number:'1.0-0' }}</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">📊</div>
+              <div class="stat-content">
+                <div class="stat-label">Credit Score</div>
+                <div class="stat-value">{{ customerProfile.creditScore || 'N/A' }}</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">🏙️</div>
+              <div class="stat-content">
+                <div class="stat-label">Location</div>
+                <div class="stat-value">{{ customerProfile.city }}</div>
+              </div>
+            </div>
+          </div>
 
-					<div class="info-item">
-						<i class="bi bi-person-vcard" aria-hidden="true"></i>
-						<span><b>Aadhaar: </b> {{customer()!.aadhaarMasked ?? '—' }}</span>
-					</div>
+          <!-- Quick Actions -->
+          <div class="quick-actions">
+            <button class="btn btn-outline-secondary w-100" (click)="logout()">
+              <i class="bi bi-box-arrow-right me-2"></i>Logout
+            </button>
+          </div>
+        </div>
+      </div>
 
-					<div class="info-item">
-						<i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-						<span><b> {{customer()!.documentType}} :</b></span>
-						@if (customer()!.downloadUrl) {
-							<a
-								[href]="customer()!.downloadUrl!"
-								target="_blank"
-								rel="noopener"
-								class="btn btn-sm btn-outline-primary ms-2"
-								aria-label="Download customer document"
-							>⬇ Download</a>
-						}
-					</div>
-				</div>
+      <!-- Right Column - Tabs Content -->
+      <div class="col-lg-8">
+        <!-- Navigation Tabs -->
+        <div class="profile-tabs">
+          <button 
+            class="tab-btn" 
+            [class.active]="activeTab === 'personal'"
+            (click)="switchTab('personal')"
+          >
+            <i class="bi bi-person-fill"></i>
+            Personal
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="activeTab === 'financial'"
+            (click)="switchTab('financial')"
+          >
+            <i class="bi bi-cash-coin"></i>
+            Financial
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="activeTab === 'documents'"
+            (click)="switchTab('documents')"
+          >
+            <i class="bi bi-file-earmark-text"></i>
+            Documents
+          </button>
+          <button 
+            class="tab-btn" 
+            [class.active]="activeTab === 'settings'"
+            (click)="switchTab('settings')"
+          >
+            <i class="bi bi-gear-fill"></i>
+            Settings
+          </button>
+        </div>
 
-				<!-- Footer -->
-				<div class="profile-footer">
-					<small><strong>DOB:</strong> {{customer()!.dateOfBirth | date:'longDate'}}  </small>
-					<small><strong>Created:</strong>  {{customer()!.createdAt | date:'medium'}} </small>
-					<small><strong>Updated:</strong> {{ customer()!.updatedAt ? (customer()!.updatedAt | date:'medium') : '—' }}</small>
-					<small><strong>Verified:</strong> {{ customer()!.verifiedAt ? (customer()!.verifiedAt | date:'medium') : '—' }} </small>
-				</div>
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Personal Tab -->
+          @if (activeTab === 'personal') {
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="bi bi-person-badge me-2"></i>
+                Personal Information
+              </h5>
+              <form (ngSubmit)="updateProfile()" #personalForm="ngForm">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">First Name <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.firstName"
+                      name="firstName"
+                      required
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.lastName"
+                      name="lastName"
+                      required
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.user!.email"
+                      name="email"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Phone</label>
+                    <input 
+                      type="tel" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.user!.phoneNumber"
+                      name="phone"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Date of Birth</label>
+                    <input 
+                      type="date" 
+                      class="form-control" 
+                      [ngModel]="customerProfile.dateOfBirth| date:'yyyy-MM-dd'"
+                      (ngModelChange)="customerProfile.dateOfBirth = $event"
+                      name="dob"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Gender</label>
+                    <select 
+                      class="form-select" 
+                      [(ngModel)]="customerProfile.gender"
+                      name="gender"
+                      [disabled]="!isEditing"
+                    >
+                      <option [value]="Gender.Male">Male</option>
+                      <option [value]="Gender.Female">Female</option>
+                      <option [value]="Gender.Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">City</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.city"
+                      name="city"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">State</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.state"
+                      name="state"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label">Occupation</label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.occupation"
+                      name="occupation"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                </div>
 
-				<div class="profile-actions">
-					<button type="button" class="btn btn-outline-secondary" (click)="closeProfile()" aria-label="Close profile">
-						Close
-					</button>
-				</div>
-			</div>
-		</div>
-	}
+                <div class="form-actions">
+                  @if (!isEditing) {
+                    <button type="button" class="btn btn-primary" (click)="enableEditing()">
+                      <i class="bi bi-pencil me-2"></i>Edit Profile
+                    </button>
+                  } @else {
+                    <button type="submit" class="btn btn-success" [disabled]="isSaving">
+                      @if (isSaving) {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                      }
+                      <i class="bi bi-check-lg me-2"></i>Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="cancelEditing()">
+                      <i class="bi bi-x-lg me-2"></i>Cancel
+                    </button>
+                  }
+                </div>
+              </form>
+            </div>
+          }
 
-	<!-- Skeleton state if needed -->
-	@if (loading()) {
-		<div class="profile-card skeleton">
-			<div class="profile-left">
-				<div class="avatar shimmer"></div>
-				<div class="line shimmer" style="width: 70%"></div>
-				<div class="badge shimmer" style="width: 60%"></div>
-			</div>
-			<div class="profile-right">
-				<div class="info-grid">
-					@for (i of [1,2,3,4,5,6,7,8]; track i) {
-						<div class="info-item">
-							<div class="icon shimmer"></div>
-							<div class="line shimmer"></div>
-						</div>
-					}
-				</div>
-				<div class="profile-footer">
-					<div class="line shimmer" style="width: 30%"></div>
-					<div class="line shimmer" style="width: 30%"></div>
-					<div class="line shimmer" style="width: 30%"></div>
-					<div class="line shimmer" style="width: 30%"></div>
-				</div>
-			</div>
-		</div>
-	}
+          <!-- Financial Tab -->
+          @if (activeTab === 'financial') {
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="bi bi-wallet2 me-2"></i>
+                Financial Information
+              </h5>
+              <form (ngSubmit)="updateProfile()" #financialForm="ngForm">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Annual Income (₹)</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.annualIncome"
+                      name="annualIncome"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Credit Score</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="customerProfile.creditScore"
+                      name="creditScore"
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <!-- Credit Score Display -->
+                <div class="metric-section mt-4">
+                  <h6 class="section-subtitle">Credit Score Analysis</h6>
+                  <div class="credit-score-card">
+                    <div class="credit-score-value" [class]="'text-' + getCreditScoreColor()">
+                      {{ customerProfile.creditScore || 'N/A' }}
+                    </div>
+                    <div class="credit-score-label" [class]="'badge bg-' + getCreditScoreColor()">
+                      {{ getCreditScoreLabel() }}
+                    </div>
+                    @if (customerProfile.creditScore) {
+                      <div class="progress mt-3" style="height: 12px;">
+                        <div 
+                          class="progress-bar" 
+                          [class]="'bg-' + getCreditScoreColor()"
+                          [style.width.%]="(customerProfile.creditScore / 900) * 100"
+                        ></div>
+                      </div>
+                      <div class="credit-range mt-2">
+                        <small class="text-muted">Range: 300 - 900</small>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  @if (!isEditing) {
+                    <button type="button" class="btn btn-primary" (click)="enableEditing()">
+                      <i class="bi bi-pencil me-2"></i>Edit Financial Info
+                    </button>
+                  } @else {
+                    <button type="submit" class="btn btn-success" [disabled]="isSaving">
+                      @if (isSaving) {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                      }
+                      <i class="bi bi-check-lg me-2"></i>Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="cancelEditing()">
+                      <i class="bi bi-x-lg me-2"></i>Cancel
+                    </button>
+                  }
+                </div>
+              </form>
+            </div>
+          }
+
+          <!-- Documents Tab -->
+          @if (activeTab === 'documents') {
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="bi bi-file-earmark-lock me-2"></i>
+                Identity Documents
+              </h5>
+
+              <div class="documents-grid">
+                <!-- PAN Card -->
+                <div class="document-item">
+                  <div class="document-icon">
+                    <i class="bi bi-credit-card-2-front"></i>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-label">PAN Number</div>
+                    <div class="document-value">{{ customerProfile.panMasked }}</div>
+                  </div>
+                </div>
+
+                <!-- Aadhaar Card -->
+                <div class="document-item">
+                  <div class="document-icon">
+                    <i class="bi bi-person-vcard"></i>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-label">Aadhaar Number</div>
+                    <div class="document-value">{{ customerProfile.aadhaarMasked }}</div>
+                  </div>
+                </div>
+
+                <!-- Document Type -->
+                <div class="document-item">
+                  <div class="document-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-label">Document Type</div>
+                    <div class="document-value">{{ getDocumentTypeLabel(customerProfile.documentType) }}</div>
+                  </div>
+                </div>
+
+                <!-- Verification Status -->
+                <div class="document-item">
+                  <div class="document-icon">
+                    <i class="bi bi-shield-check"></i>
+                  </div>
+                  <div class="document-info">
+                    <div class="document-label">Verification Status</div>
+                    <span class="badge" [class]="'bg-' + getStatusBadge()">
+                      {{ customerProfile.verificationStatusText }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              @if (customerProfile.documentPath) {
+                <div class="document-actions mt-4">
+                  <button class="btn btn-outline-primary" (click)="downloadDocument()">
+                    <i class="bi bi-download me-2"></i>Download Document
+                  </button>
+                </div>
+              }
+
+              <!-- Verification Timeline -->
+              @if (customerProfile.verifiedAt) {
+                <div class="metric-section mt-4">
+                  <h6 class="section-subtitle">Verification Timeline</h6>
+                  <div class="timeline">
+                    <div class="timeline-item">
+                      <i class="bi bi-check-circle text-success"></i>
+                      <div>
+                        <div class="fw-semibold">Documents Verified</div>
+                        <small class="text-muted">{{ customerProfile.verifiedAt | date:'medium' }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Settings Tab -->
+          @if (activeTab === 'settings') {
+            <div class="content-card">
+              <h5 class="card-title">
+                <i class="bi bi-sliders me-2"></i>
+                Preferences & Settings
+              </h5>
+
+              <div class="preference-section">
+                <h6 class="section-subtitle">Notifications</h6>
+                <div class="notification-settings">
+                  <div class="notification-item">
+                    <div class="form-check form-switch">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        [(ngModel)]="preferences.emailNotifications"
+                        (change)="updatePreferences()"
+                        id="emailNotif"
+                      />
+                      <label class="form-check-label" for="emailNotif">
+                        <i class="bi bi-envelope me-2 ms-2"></i>Email Notifications
+                      </label>
+                    </div>
+                    <div class="text-muted small">Receive loan updates via email</div>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="form-check form-switch">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        [(ngModel)]="preferences.smsNotifications"
+                        (change)="updatePreferences()"
+                        id="smsNotif"
+                      />
+                      <label class="form-check-label" for="smsNotif">
+                        <i class="bi bi-phone me-2 ms-2"></i>SMS Notifications
+                      </label>
+                    </div>
+                    <div class="text-muted small">Receive alerts via SMS</div>
+                  </div>
+
+                  <div class="notification-item">
+                    <div class="form-check form-switch">
+                      <input 
+                        class="form-check-input" 
+                        type="checkbox" 
+                        [(ngModel)]="preferences.marketingEmails"
+                        (change)="updatePreferences()"
+                        id="marketing"
+                      />
+                      <label class="form-check-label" for="marketing">
+                        <i class="bi bi-megaphone me-2 ms-2"></i>Marketing Emails
+                      </label>
+                    </div>
+                    <div class="text-muted small">Receive promotional offers</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preference-section mt-4">
+                <h6 class="section-subtitle">Appearance</h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Theme</label>
+                    <select class="form-select" [(ngModel)]="preferences.theme" (change)="updatePreferences()">
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                      <option value="auto">Auto</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Account Timeline -->
+              <div class="metric-section mt-4">
+                <h6 class="section-subtitle">Account Activity</h6>
+                <div class="timeline">
+                  <div class="timeline-item">
+                    <i class="bi bi-check-circle text-success"></i>
+                    <div>
+                      <div class="fw-semibold">Account Created</div>
+                      <small class="text-muted">{{ customerProfile.createdAt | date:'medium' }}</small>
+                    </div>
+                  </div>
+                  @if (customerProfile.updatedAt) {
+                    <div class="timeline-item">
+                      <i class="bi bi-pencil text-info"></i>
+                      <div>
+                        <div class="fw-semibold">Last Updated</div>
+                        <small class="text-muted">{{ customerProfile.updatedAt | date:'medium' }}</small>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </div>
+

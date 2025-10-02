@@ -7,10 +7,12 @@ import { LoanDocument } from '../models/loan-document';
 import { CustomerQuery } from '../models/customer-query';
 import { Repayment } from '../models/repayment';
 import { EmailNotification } from '../models/email-notification';
+import { PerformanceMetrics } from '../models/PerformanceMetrics';
+import { AuditLogEntry } from '../models/AuditLog';
 
 @Injectable({ providedIn: 'root' })
 export class OfficerService {
-  private readonly apiUrl = 'https://localhost:7262/api/LoanOfficer';
+  private readonly apiUrl = 'https://localhost:7262/api/officers';
 
   constructor(private http: HttpClient) {}
 
@@ -29,21 +31,20 @@ export class OfficerService {
     return this.http.patch<void>(`${this.apiUrl}/${id}/workload`, { count });
   }
 
-  // ✅ Assign loan application to officer
+  // ✅ Assign loan application
   assignLoanApplication(officerId: number, applicationId: number): Observable<LoanApplication> {
     return this.http.post<LoanApplication>(`${this.apiUrl}/${officerId}/assign-application`, { applicationId });
   }
 
-  // 📤 Verify loan document
+  // 📤 Verify document
   verifyDocument(officerId: number, documentId: number): Observable<LoanDocument> {
     return this.http.patch<LoanDocument>(`${this.apiUrl}/${officerId}/verify-document`, { documentId });
   }
 
-  // 📨 Respond to customer query
+  // 📨 Respond to query
   respondToQuery(officerId: number, queryId: number, response: string): Observable<CustomerQuery> {
     return this.http.post<CustomerQuery>(`${this.apiUrl}/${officerId}/respond-query`, { queryId, response });
   }
-  
 
   // 📊 Get assigned applications
   getAssignedApplications(officerId: number): Observable<LoanApplication[]> {
@@ -75,50 +76,60 @@ export class OfficerService {
     return this.http.patch<void>(`${this.apiUrl}/${officerId}/reactivate`, {});
   }
 
-  // 🧾 Audit log for officer actions
-  getAuditLog(officerId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/${officerId}/audit-log`);
+  // 🧾 Audit log
+  getAuditLog(officerId: number): Observable<AuditLogEntry[]> {
+    return this.http.get<AuditLogEntry[]>(`${this.apiUrl}/${officerId}/audit-log`);
   }
 
+  // 🖥️ Dashboard data
   getDashboardData(officerId: number): Observable<{
-  applications: LoanApplication[];
-  documents: LoanDocument[];
-  queries: CustomerQuery[];
-  }> {
-  return this.http.get<{
     applications: LoanApplication[];
     documents: LoanDocument[];
     queries: CustomerQuery[];
-  }>(`${this.apiUrl}/${officerId}/dashboard`);
+  }> {
+    return this.http.get<{ applications: LoanApplication[]; documents: LoanDocument[]; queries: CustomerQuery[] }>(
+      `${this.apiUrl}/${officerId}/dashboard`
+    );
   }
+
+  // ➕ Create officer
   createOfficer(payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
-  return this.http.post<LoanOfficer>(`${this.apiUrl}`, payload);
+    return this.http.post<LoanOfficer>(`${this.apiUrl}`, payload);
   }
 
+  // ✏️ Update officer
   updateOfficer(id: number, payload: Partial<LoanOfficer>): Observable<LoanOfficer> {
-  return this.http.put<LoanOfficer>(`${this.apiUrl}/${id}`, payload);
+    return this.http.put<LoanOfficer>(`${this.apiUrl}/${id}`, payload);
   }
 
+  // 💰 Repayments
   getRepaymentsByOfficer(officerId: number): Observable<Repayment[]> {
-  return this.http.get<Repayment[]>(`/api/officers/${officerId}/repayments`);
+    return this.http.get<Repayment[]>(`${this.apiUrl}/${officerId}/repayments`);
   }
 
+  // 📧 Email notifications
   getEmailNotifications(officerId: number): Observable<EmailNotification[]> {
-    return this.http.get<EmailNotification[]>(`/api/officers/${officerId}/email-notifications`);
+    return this.http.get<EmailNotification[]>(`${this.apiUrl}/${officerId}/email-notifications`);
   }
 
-   getDocumentsForAssignedApplications(officerId: number): Observable<LoanDocument[]> {
-    return this.http.get<LoanDocument[]>(`/api/officers/${officerId}/assigned-documents`);
+  // 📄 Documents for assigned applications
+  getDocumentsForAssignedApplications(officerId: number): Observable<LoanDocument[]> {
+    return this.http.get<LoanDocument[]>(`${this.apiUrl}/${officerId}/assigned-documents`);
   }
 
-  updateDocumentStatus(documentId: number, payload: Partial<LoanDocument>): Observable<any> {
-    return this.http.patch(`/api/documents/${documentId}/status`, payload);
+  // 📑 Document status & remarks
+  updateDocumentStatus(documentId: number, payload: Partial<LoanDocument>): Observable<LoanDocument> {
+    return this.http.patch<LoanDocument>(`${this.apiUrl}/documents/${documentId}/status`, payload);
   }
 
-  updateDocumentRemarks(documentId: number, remarks: string): Observable<any> {
-    return this.http.patch(`/api/documents/${documentId}/remarks`, { verificationRemarks: remarks });
+  updateDocumentRemarks(documentId: number, remarks: string): Observable<LoanDocument> {
+    return this.http.patch<LoanDocument>(`${this.apiUrl}/documents/${documentId}/remarks`, {
+      verificationRemarks: remarks,
+    });
   }
 
-
-
+  // 📊 Officer performance
+  getOfficerPerformance(officerId: number): Observable<PerformanceMetrics> {
+    return this.http.get<PerformanceMetrics>(`${this.apiUrl}/${officerId}/performance`);
+  }
 }

@@ -1,0 +1,614 @@
+<div class="admin-profile container py-4">
+  <div class="profile-header mb-4">
+    <h3 class="fw-bold mb-2">👤 Admin Profile</h3>
+    <p class="text-muted">Manage your account settings and preferences</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  @if (successMessage) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <div class="row g-4">
+    <!-- Left Column - Profile Card -->
+    <div class="col-lg-4">
+      <div class="profile-card">
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+          <div class="avatar-container">
+            @if (adminProfile.avatarUrl) {
+              <img [src]="adminProfile.avatarUrl" alt="Admin Avatar" class="avatar-img" />
+            } @else {
+              <div class="avatar-placeholder">
+                {{ getInitials() }}
+              </div>
+            }
+            <button class="avatar-edit-btn" (click)="openAvatarUpload()">
+              <i class="bi bi-camera-fill"></i>
+            </button>
+            <input 
+              type="file" 
+              #avatarInput 
+              accept="image/*" 
+              (change)="onAvatarChange($event)"
+              style="display: none"
+            />
+          </div>
+          <h4 class="mt-3 mb-1">{{ adminProfile.firstName }} {{ adminProfile.lastName }}</h4>
+          <p class="text-muted mb-2">{{ adminProfile.role || 'Administrator' }}</p>
+          <span class="status-badge status-active">
+            <i class="bi bi-circle-fill me-1"></i>Active
+          </span>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+          <div class="stat-item">
+            <div class="stat-icon">📅</div>
+            <div class="stat-content">
+              <div class="stat-label">Member Since</div>
+              <div class="stat-value">{{ adminProfile.joinedDate | date:'MMM yyyy' }}</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🔐</div>
+            <div class="stat-content">
+              <div class="stat-label">Last Login</div>
+              <div class="stat-value">{{ adminProfile.lastLogin | date:'short' }}</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <div class="stat-label">Verified Status</div>
+              <div class="stat-value text-success">Verified</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="btn btn-outline-primary w-100 mb-2" (click)="switchTab('security')">
+            <i class="bi bi-shield-lock me-2"></i>Change Password
+          </button>
+          <button class="btn btn-outline-secondary w-100" (click)="logout()">
+            <i class="bi bi-box-arrow-right me-2"></i>Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Tabs Content -->
+    <div class="col-lg-8">
+      <!-- Navigation Tabs -->
+      <div class="profile-tabs">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'personal'"
+          (click)="switchTab('personal')"
+        >
+          <i class="bi bi-person-fill"></i>
+          Personal Info
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'contact'"
+          (click)="switchTab('contact')"
+        >
+          <i class="bi bi-envelope-fill"></i>
+          Contact
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'security'"
+          (click)="switchTab('security')"
+        >
+          <i class="bi bi-shield-lock-fill"></i>
+          Security
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'preferences'"
+          (click)="switchTab('preferences')"
+        >
+          <i class="bi bi-gear-fill"></i>
+          Preferences
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Personal Information Tab -->
+        @if (activeTab === 'personal') {
+          <div class="content-card">
+            <h5 class="card-title">
+              <i class="bi bi-person-badge me-2"></i>
+              Personal Information
+            </h5>
+            <form (ngSubmit)="updatePersonalInfo()" #personalForm="ngForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.firstName"
+                    name="firstName"
+                    required
+                    [disabled]="!isEditing"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.lastName"
+                    name="lastName"
+                    required
+                    [disabled]="!isEditing"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Employee ID</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.employeeId"
+                    name="employeeId"
+                    disabled
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Department</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.department"
+                    name="department"
+                    [disabled]="!isEditing"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Date of Birth</label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.dateOfBirth"
+                    name="dateOfBirth"
+                    [disabled]="!isEditing"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Gender</label>
+                  <select 
+                    class="form-select" 
+                    [(ngModel)]="adminProfile.gender"
+                    name="gender"
+                    [disabled]="!isEditing"
+                  >
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                @if (!isEditing) {
+                  <button type="button" class="btn btn-primary" (click)="enableEditing()">
+                    <i class="bi bi-pencil me-2"></i>Edit Profile
+                  </button>
+                } @else {
+                  <button type="submit" class="btn btn-success" [disabled]="isSaving">
+                    @if (isSaving) {
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="bi bi-check-lg me-2"></i>Save Changes
+                  </button>
+                  <button type="button" class="btn btn-secondary" (click)="cancelEditing()">
+                    <i class="bi bi-x-lg me-2"></i>Cancel
+                  </button>
+                }
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Contact Information Tab -->
+        @if (activeTab === 'contact') {
+          <div class="content-card">
+            <h5 class="card-title">
+              <i class="bi bi-telephone me-2"></i>
+              Contact Information
+            </h5>
+            <form (ngSubmit)="updateContactInfo()" #contactForm="ngForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      [(ngModel)]="adminProfile.email"
+                      name="email"
+                      required
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                    <input 
+                      type="tel" 
+                      class="form-control" 
+                      [(ngModel)]="adminProfile.phoneNumber"
+                      name="phoneNumber"
+                      required
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Alternative Email</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope-plus"></i></span>
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      [(ngModel)]="adminProfile.alternativeEmail"
+                      name="alternativeEmail"
+                      [disabled]="!isEditing"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Address</label>
+                  <textarea 
+                    class="form-control" 
+                    rows="3"
+                    [(ngModel)]="adminProfile.address"
+                    name="address"
+                    [disabled]="!isEditing"
+                    placeholder="Enter your full address"
+                  ></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">City</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.city"
+                    name="city"
+                    [disabled]="!isEditing"
+                  />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Postal Code</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    [(ngModel)]="adminProfile.postalCode"
+                    name="postalCode"
+                    [disabled]="!isEditing"
+                  />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                @if (!isEditing) {
+                  <button type="button" class="btn btn-primary" (click)="enableEditing()">
+                    <i class="bi bi-pencil me-2"></i>Edit Contact
+                  </button>
+                } @else {
+                  <button type="submit" class="btn btn-success" [disabled]="isSaving">
+                    @if (isSaving) {
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="bi bi-check-lg me-2"></i>Save Changes
+                  </button>
+                  <button type="button" class="btn btn-secondary" (click)="cancelEditing()">
+                    <i class="bi bi-x-lg me-2"></i>Cancel
+                  </button>
+                }
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- Security Tab -->
+        @if (activeTab === 'security') {
+          <div class="content-card">
+            <h5 class="card-title">
+              <i class="bi bi-shield-check me-2"></i>
+              Security Settings
+            </h5>
+            
+            <!-- Change Password -->
+            <div class="security-section">
+              <h6 class="section-subtitle">Change Password</h6>
+              <form (ngSubmit)="changePassword()" #passwordForm="ngForm">
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label class="form-label">Current Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                      <input 
+                        [type]="showCurrentPassword ? 'text' : 'password'"
+                        class="form-control" 
+                        [(ngModel)]="passwordData.currentPassword"
+                        name="currentPassword"
+                        required
+                      />
+                      <button 
+                        class="btn btn-outline-secondary" 
+                        type="button"
+                        (click)="showCurrentPassword = !showCurrentPassword"
+                      >
+                        <i [class]="showCurrentPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">New Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                      <input 
+                        [type]="showNewPassword ? 'text' : 'password'"
+                        class="form-control" 
+                        [(ngModel)]="passwordData.newPassword"
+                        name="newPassword"
+                        required
+                        minlength="8"
+                      />
+                      <button 
+                        class="btn btn-outline-secondary" 
+                        type="button"
+                        (click)="showNewPassword = !showNewPassword"
+                      >
+                        <i [class]="showNewPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                      </button>
+                    </div>
+                    <div class="form-text">Minimum 8 characters</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                      <input 
+                        [type]="showConfirmPassword ? 'text' : 'password'"
+                        class="form-control" 
+                        [(ngModel)]="passwordData.confirmPassword"
+                        name="confirmPassword"
+                        required
+                      />
+                      <button 
+                        class="btn btn-outline-secondary" 
+                        type="button"
+                        (click)="showConfirmPassword = !showConfirmPassword"
+                      >
+                        <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Password Strength Indicator -->
+                @if (passwordData.newPassword) {
+                  <div class="password-strength mt-3">
+                    <div class="strength-label">Password Strength:</div>
+                    <div class="strength-bar">
+                      <div 
+                        class="strength-progress" 
+                        [class]="'strength-' + getPasswordStrength()"
+                        [style.width.%]="getPasswordStrengthPercentage()"
+                      ></div>
+                    </div>
+                    <div class="strength-text">{{ getPasswordStrengthText() }}</div>
+                  </div>
+                }
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary" [disabled]="isSaving || !passwordForm.valid">
+                    @if (isSaving) {
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="bi bi-shield-check me-2"></i>Update Password
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="security-section mt-4">
+              <h6 class="section-subtitle">Two-Factor Authentication</h6>
+              <div class="two-factor-card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold mb-1">
+                      <i class="bi bi-phone-vibrate me-2"> </i>
+                       SMS Authentication
+                    </div>
+                    <div class="text-muted small">Receive verification codes via SMS</div>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      [(ngModel)]="securitySettings.twoFactorEnabled"
+                      (change)="toggleTwoFactor()"
+                      id="twoFactorSwitch"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Login Sessions -->
+            <div class="security-section mt-4">
+              <h6 class="section-subtitle">Active Sessions</h6>
+              <div class="sessions-list">
+                @for (session of activeSessions; track session.id) {
+                  <div class="session-item">
+                    <div class="session-icon">
+                      <i [class]="getDeviceIcon(session.device)"></i>
+                    </div>
+                    <div class="session-info">
+                      <div class="session-device">{{ session.device }}</div>
+                      <div class="session-meta">
+                        {{ session.location }} • {{ session.lastActive | date:'short' }}
+                      </div>
+                    </div>
+                    @if (session.isCurrent) {
+                      <span class="badge bg-success">Current</span>
+                    } @else {
+                      <button class="btn btn-sm btn-outline-danger" (click)="terminateSession(session.id)">
+                        End
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Preferences Tab -->
+        @if (activeTab === 'preferences') {
+          <div class="content-card">
+            <h5 class="card-title">
+              <i class="bi bi-sliders me-2"></i>
+              Preferences & Settings
+            </h5>
+
+            <!-- Appearance -->
+            <div class="preference-section">
+              <h6 class="section-subtitle">Appearance</h6>
+              <div class="preference-item">
+                <div class="preference-label">
+                  <i class="bi bi-moon-stars me-2"></i>
+                  <div>
+                    <div class="fw-semibold">Theme</div>
+                    <div class="text-muted small">Choose your preferred color theme</div>
+                  </div>
+                </div>
+                <select class="form-select w-auto" [(ngModel)]="preferences.theme" (change)="updatePreferences()">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="auto">Auto</option>
+                </select>
+              </div>
+
+              <div class="preference-item">
+                <div class="preference-label">
+                  <i class="bi bi-palette me-2"></i>
+                  <div>
+                    <div class="fw-semibold">Color Scheme</div>
+                    <div class="text-muted small">Select accent color</div>
+                  </div>
+                </div>
+                <select class="form-select w-auto" [(ngModel)]="preferences.colorScheme" (change)="updatePreferences()">
+                  <option value="blue">Blue</option>
+                  <option value="purple">Purple</option>
+                  <option value="green">Green</option>
+                  <option value="red">Red</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="preference-section mt-4">
+              <h6 class="section-subtitle">Notifications</h6>
+              <div class="notification-settings">
+                <div class="notification-item">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      [(ngModel)]="preferences.emailNotifications"
+                      (change)="updatePreferences()"
+                      id="emailNotif"
+                    />
+                    <label class="form-check-label" for="emailNotif">
+                      <i class="bi bi-envelope me-2 ms-2"></i> Email Notifications
+                    </label>
+                  </div>
+                  <div class="text-muted small">Receive updates via email</div>
+                </div>
+
+                <div class="notification-item">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      [(ngModel)]="preferences.smsNotifications"
+                      (change)="updatePreferences()"
+                      id="smsNotif"
+                    />
+                    <label class="form-check-label" for="smsNotif">
+                      <i class="bi bi-phone me-2 ms-2"></i> SMS Notifications
+                    </label>
+                  </div>
+                  <div class="text-muted small">Receive updates via SMS</div>
+                </div>
+
+                <div class="notification-item">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      [(ngModel)]="preferences.pushNotifications"
+                      (change)="updatePreferences()"
+                      id="pushNotif"
+                    />
+                    <label class="form-check-label" for="pushNotif"> 
+                      <i class="bi bi-bell me-2 ms-2"> </i> Push Notifications
+                    </label>
+                  </div>
+                  <div class="text-muted small">Receive browser notifications</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Language & Region -->
+            <div class="preference-section mt-4">
+              <h6 class="section-subtitle">Language & Region</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Language</label>
+                  <select class="form-select" [(ngModel)]="preferences.language" (change)="updatePreferences()">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="mr">Marathi</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Timezone</label>
+                  <select class="form-select" [(ngModel)]="preferences.timezone" (change)="updatePreferences()">
+                    <option value="Asia/Kolkata">India (IST)</option>
+                    <option value="Asia/Dubai">Dubai</option>
+                    <option value="America/New_York">New York</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

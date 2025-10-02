@@ -1,29 +1,181 @@
 .workload-meter {
-  max-width: 1000px;
-  margin: auto;
-  padding: 2rem;
-}
-
-.card {
+  padding: 1.5rem;
+  background: #f8f9fa;
   border-radius: 12px;
-  transition: box-shadow 0.3s ease;
 }
 
-.card:hover {
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+.header-section h3 {
+  color: #2c3e50;
+  font-size: 1.5rem;
 }
 
-.progress {
-  height: 24px;
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #212529;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.badge-success {
+  background-color: #28a745;
+  color: white;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.loading-container {
+  background: white;
   border-radius: 12px;
-  overflow: hidden;
-  background-color: #e9ecef;
+  padding: 3rem;
 }
 
-.progress-bar {
-  font-weight: 600;
-  font-size: 0.9rem;
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-wrapper i {
+  font-size: 1.5rem;
+}
+
+.card-content h3 {
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.card-content h6 {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.workload-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  height: 100%;
+}
+
+.workload-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.workload-card .card-body {
+  padding: 1.5rem;
+}
+
+.metric-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metric-icon i {
+  font-size: 1.125rem;
+}
+
+.progress-wrapper {
+  margin-top: 1rem;
+}
+
+.progress {
+  height: 10px;
+  border-radius: 10px;
+  background-color: #e9ecef;
+  overflow: hidden;
+}
+
+.progress-bar {
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+.insights-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.insights-card .card-body {
+  padding: 1.5rem;
+}
+
+.insights-card h6 {
+  color: white;
+}
+
+.insight-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.75rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.insight-item .text-muted {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.insight-item strong {
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .workload-meter {
+    padding: 1rem;
+  }
+
+  .header-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .summary-card {
+    padding: 1rem;
+  }
+
+  .icon-wrapper {
+    width: 48px;
+    height: 48px;
+  }
+
+  .card-content h3 {
+    font-size: 1.5rem;
+  }
 }
