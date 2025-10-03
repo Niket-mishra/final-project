@@ -355,7 +355,7 @@ interface Alert {
                      class="btn btn-outline-primary btn-sm text-start d-flex align-items-center justify-content-between">
                     <span>➕ Create New Scheme</span>
                   </a>
-                  <a [routerLink]="['/applications/list']" 
+                  <a [routerLink]="['/admin/application-list']" 
                      [queryParams]="{filter: 'unassigned'}"
                      class="btn btn-outline-success btn-sm text-start d-flex align-items-center justify-content-between">
                     <span>🎯 Assign Officers</span>
@@ -363,11 +363,11 @@ interface Alert {
                       <span class="badge bg-danger">{{ stats.applications.unassigned }}</span>
                     }
                   </a>
-                  <a [routerLink]="['/admin/reports']" 
+                  <a [routerLink]="['/admin/npa-monitoring']" 
                      class="btn btn-outline-info btn-sm text-start d-flex align-items-center justify-content-between">
-                    <span>📊 Generate Reports</span>
+                    <span>📊 NPA Reports</span>
                   </a>
-                  <a [routerLink]="['/applications/list']" 
+                  <a [routerLink]="['/admin/application-list']" 
                      [queryParams]="{status: 'pending'}"
                      class="btn btn-outline-warning btn-sm text-start d-flex align-items-center justify-content-between">
                     <span>✅ Bulk Approve</span>
@@ -586,7 +586,7 @@ export class AdminDashboard implements OnInit {
     });
 
     // Load audit logs
-    this.applicationService.getAuditLog(0).subscribe({
+    this.applicationService.getAuditLog(1).subscribe({
       next: (logs) => this.auditLogs = logs.slice(0, 5),
       error: () => {}
     });
@@ -613,7 +613,7 @@ export class AdminDashboard implements OnInit {
         type: 'WARNING',
         title: 'Action Required:',
         message: '15 applications pending review for over 7 days',
-        actionLink: '/applications/list',
+        actionLink: '/admin/application-list',
         isRead: false
       }
     ];
@@ -701,6 +701,9 @@ export class AdminDashboard implements OnInit {
   refreshDashboard(): void {
     this.toast.info('Refreshing dashboard...');
     this.loadDashboardData();
+    setTimeout(() => this.cdr.detectChanges(), 1000);
+    this.toast.success('Refreshed Successfully...')
+
   }
 
   exportData(format: string): void {

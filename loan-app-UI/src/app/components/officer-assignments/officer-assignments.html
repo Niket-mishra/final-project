@@ -1,51 +1,292 @@
-<div class="officer-assignments container py-4">
-  <h3 class="text-center fw-bold mb-4">📄 Assigned Loan Applications</h3>
+<div class="officer-assignments container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h3 class="fw-bold mb-0">
+        <span class="text-primary">📄</span> Assigned Loan Applications
+      </h3>
+      <p class="text-muted mb-0">Manage and review your assigned applications</p>
+    </div>
+  </div>
 
   @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading assignments...</p>
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="text-muted">Loading your assignments...</p>
     </div>
   } @else {
     @if (errorMessage) {
-      <div class="alert alert-danger text-center">{{ errorMessage }}</div>
-    }
-
-    @if (applications.length === 0 && !errorMessage) {
-      <div class="text-center text-muted">No applications assigned.</div>
-    }
-
-    @if (applications.length > 0) {
-      <div class="list-group">
-        @for (app of applications; track app.applicationId) {
-          <div class="list-group-item flex-column align-items-start">
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1">Application #{{ app.applicationId }}</h5>
-              <span class="badge bg-{{ getStatusBadge(app.status) }}">
-                {{ app.status }}
-              </span>
-            </div>
-
-            <p class="mb-1 text-muted">
-              {{ app.customer?.firstName }} {{ app.customer?.lastName }}
-            </p>
-
-            <div class="mt-2 small text-secondary">
-              <div><strong>Loan Type:</strong> {{ app.loanScheme?.schemeName || '—' }}</div>
-              <div><strong>Amount:</strong> ₹{{ app.requestedAmount }}</div>
-              <div><strong>Submitted:</strong> {{ app.applicationDate | date:'mediumDate' }}</div>
-              <div><strong>Assigned:</strong> {{ app.officerAssignedDate || '—' }}</div>
-              @if (app.remarks) {
-                <div><strong>Remarks:</strong> {{ app.remarks }}</div>
-              }
-              @if (app.rejectionReason) {
-                <div><strong>Rejection Reason:</strong> {{ app.rejectionReason }}</div>
-              }
-            </div>
-          </div>
-        }
+      <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <span class="me-2">⚠️</span>
+        <div>{{ errorMessage }}</div>
       </div>
     }
-  }
 
+    @if (!errorMessage) {
+      <!-- Statistics Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1 small">Total Applications</p>
+                  <h4 class="mb-0 fw-bold">{{ stats.total }}</h4>
+                </div>
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                  <span class="fs-4">📋</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1 small">Pending Review</p>
+                  <h4 class="mb-0 fw-bold text-warning">{{ stats.pending }}</h4>
+                </div>
+                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                  <span class="fs-4">⏳</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1 small">Approved</p>
+                  <h4 class="mb-0 fw-bold text-success">{{ stats.approved }}</h4>
+                </div>
+                <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                  <span class="fs-4">✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1 small">Total Amount</p>
+                  <h4 class="mb-0 fw-bold">{{ formatCurrency(stats.totalAmount) }}</h4>
+                </div>
+                <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                  <span class="fs-4">💰</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-5">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                  <span>🔍</span>
+                </span>
+                <input 
+                  type="text" 
+                  class="form-control border-start-0 ps-0" 
+                  placeholder="Search by ID, name, or scheme..."
+                  [(ngModel)]="searchTerm"
+                  (ngModelChange)="onSearchChange()"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <select 
+                class="form-select"
+                [(ngModel)]="statusFilter"
+                (ngModelChange)="onStatusFilterChange()"
+              >
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <select 
+                class="form-select"
+                [(ngModel)]="sortBy"
+                (ngModelChange)="onSortChange()"
+              >
+                <option value="date">Sort by Date</option>
+                <option value="amount">Sort by Amount</option>
+                <option value="status">Sort by Status</option>
+              </select>
+            </div>
+
+            <div class="col-md-1">
+              <button 
+                class="btn btn-outline-secondary w-100"
+                (click)="toggleSortOrder()"
+                title="Toggle sort order"
+              >
+                <span *ngIf="sortOrder === 'asc'">↑</span>
+                <span *ngIf="sortOrder === 'desc'">↓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications List -->
+      @if (filteredApplications.length === 0) {
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <div class="mb-3 fs-1">📭</div>
+            <h5 class="text-muted mb-2">No applications found</h5>
+            <p class="text-muted small mb-0">
+              @if (searchTerm || statusFilter !== 'all') {
+                Try adjusting your filters
+              } @else {
+                You have no assigned applications at the moment
+              }
+            </p>
+          </div>
+        </div>
+      } @else {
+        <div class="row g-3">
+          @for (app of filteredApplications; track app.applicationId) {
+            <div class="col-12">
+              <div class="card border-0 shadow-sm h-100 hover-shadow transition">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-8">
+                      <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                          <h5 class="mb-1 fw-bold">
+                            Application #{{ app.applicationId }}
+                            <span class="badge bg-{{ getStatusBadge(app.status) }} ms-2">
+                              {{ getStatusIcon(app.status) }} {{ app.status }}
+                            </span>
+                          </h5>
+                          <p class="text-muted mb-0">
+                            <strong>{{ app.customer?.firstName }} {{ app.customer?.lastName }}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="row g-3">
+                        <div class="col-sm-6">
+                          <div class="d-flex align-items-start">
+                            <span class="me-2">🏦</span>
+                            <div>
+                              <small class="text-muted d-block">Loan Scheme</small>
+                              <strong>{{ app.loanScheme?.schemeName || '—' }}</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                          <div class="d-flex align-items-start">
+                            <span class="me-2">💵</span>
+                            <div>
+                              <small class="text-muted d-block">Requested Amount</small>
+                              <strong>{{ formatCurrency(app.requestedAmount) }}</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                          <div class="d-flex align-items-start">
+                            <span class="me-2">📅</span>
+                            <div>
+                              <small class="text-muted d-block">Application Date</small>
+                              <strong>{{ app.applicationDate | date:'mediumDate' }}</strong>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                          <div class="d-flex align-items-start">
+                            <span class="me-2">📌</span>
+                            <div>
+                              <small class="text-muted d-block">Assigned Date</small>
+                              <strong>
+                                {{ app.officerAssignedDate ? (app.officerAssignedDate | date:'mediumDate') : '—' }}
+                                @if (app.officerAssignedDate) {
+                                  <span class="badge bg-secondary ms-1">
+                                    {{ getDaysAssigned(app.officerAssignedDate ? app.officerAssignedDate.toISOString() : '') }}d ago
+                                  </span>
+                                }
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      @if (app.remarks || app.rejectionReason) {
+                        <div class="mt-3 pt-3 border-top">
+                          @if (app.remarks) {
+                            <div class="alert alert-info mb-2 py-2">
+                              <small><strong>📝 Remarks:</strong> {{ app.remarks }}</small>
+                            </div>
+                          }
+                          @if (app.rejectionReason) {
+                            <div class="alert alert-danger mb-0 py-2">
+                              <small><strong>❌ Rejection Reason:</strong> {{ app.rejectionReason }}</small>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    <div class="col-md-4 border-start">
+                      <div class="h-100 d-flex flex-column">
+                        <small class="text-muted mb-2">Quick Actions</small>
+                        <div class="d-grid gap-2">
+                          <button class="btn btn-sm btn-outline-primary">
+                            👁️ View Details
+                          </button>
+                          @if (app.status === 'Pending') {
+                            <button class="btn btn-sm btn-outline-success">
+                              ✓ Process Application
+                            </button>
+                          }
+                          <button class="btn btn-sm btn-outline-secondary">
+                            📄 View Documents
+                          </button>
+                        </div>
+
+                        @if (app.status === 'Pending') {
+                          <div class="mt-auto pt-3">
+                            <div class="alert alert-warning py-2 mb-0">
+                              <small class="d-flex align-items-center">
+                                <span class="me-2">⚡</span>
+                                <span>Action required</span>
+                              </small>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
 </div>

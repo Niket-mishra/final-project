@@ -1,16 +1,60 @@
 .officer-assignments {
-  max-width: 900px;
-  margin: auto;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.list-group-item {
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-  background-color: #fdfdfd;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+.hover-shadow {
+  transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.transition {
+  transition: all 0.3s ease;
+}
+
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.input-group-text {
+  border-right: none;
+}
+
+.form-control:focus {
+  border-color: #dee2e6;
+  box-shadow: none;
 }
 
 .badge {
-  font-size: 0.8rem;
-  padding: 0.4em 0.6em;
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+.alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .col-md-4.border-start {
+    border-right: none !important;
+    border-top: 1px solid #dee2e6;
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
 }

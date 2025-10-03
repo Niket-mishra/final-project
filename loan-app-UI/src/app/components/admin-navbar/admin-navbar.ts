@@ -1049,10 +1049,9 @@ export class AdminLayout implements OnInit {
       icon: '💰',
       expanded: false,
       items: [
-        { label: 'All Applications', route: '/admin/application-list', icon: '📋' },
-        { label: 'Loan Schemes', route: '/admin/loan-schemes', icon: '📝' },
-        { label: 'Active Loans', route: '/admin/loan-list', icon: '💵' },
-        { label: 'Approvals', route: '/admin/approval-list', icon: '✅' }
+        { label: 'Manage Applications', route: '/admin/application-list', icon: '📋' },
+        { label: 'Manage Schemes', route: '/admin/loan-schemes', icon: '📝' },
+        { label: 'Manage Loans', route: '/admin/loan-list', icon: '💵' },
       ]
     },
     {
@@ -1060,30 +1059,18 @@ export class AdminLayout implements OnInit {
       icon: '👥',
       expanded: false,
       items: [
-        { label: 'All Users', route: '/admin/users', icon: '👤' },
-        { label: 'Customers', route: '/admin/customers', icon: '🧑‍💼' },
-        { label: 'Loan Officers', route: '/admin/loan-officers', icon: '👨‍💼' },
-        { label: 'Create Officer', route: '/admin/loan-officers/create', icon: '⚙️' }
+        { label: 'Manage Users', route: '/admin/users', icon: '👤' },
+        { label: 'Manage Customers', route: '/admin/customers', icon: '🧑‍💼' },
+        { label: 'Manage Officers', route: '/admin/loan-officers', icon: '👨‍💼' },
       ]
     },
     {
-      label: 'Documents',
-      icon: '📁',
-      expanded: false,
-      items: [
-        { label: 'All Documents', route: '/admin/document-list', icon: '📄' },
-        { label: 'Verification', route: '/admin/document-verification', icon: '✓' },
-        { label: 'Verifed Customer', route: '/admin/customer-documents', icon: '⬆️' }
-      ]
-    },
-    {
-      label: 'Financial',
+      label: 'Finance Management',
       icon: '💳',
       expanded: false,
       items: [
-        { label: 'Repayments', route: '/admin/repayments-history', icon: '💸' },
-        { label: 'NPA Monitoring', route: '/admin/npa-monitoring', icon: '⚠️', badge: 5, color: '#f59e0b' },
-        { label: 'Payment Processing', route: '/admin/payments', icon: '💰' }
+        { label: 'Manage Repayments', route: '/admin/repayments-history', icon: '💸' },
+        { label: 'Manage NPA', route: '/admin/npa-monitoring', icon: '⚠️', badge: 5, color: '#f59e0b' },
       ]
     },
     {
@@ -1092,9 +1079,7 @@ export class AdminLayout implements OnInit {
       expanded: false,
       items: [
         { label: 'Reports Dashboard', route: '/admin/reports', icon: '📊' },
-        { label: 'Generate Report', route: '/admin/generate-report', icon: '📝' },
         { label: 'Workload Meter', route: '/admin/workload-meter', icon: '⚖️' },
-        { label: 'Performance', route: '/admin/officer-performance', icon: '🎯' }
       ]
     },
     {
@@ -1102,9 +1087,8 @@ export class AdminLayout implements OnInit {
       icon: '💬',
       expanded: false,
       items: [
-        { label: 'Customer Queries', route: '/admin/queries', icon: '❓' },
+        { label: 'Customer Queries', route: '/admin/customer-queries', icon: '❓' },
         { label: 'Notifications', route: '/admin/notifications', icon: '🔔', badge: 12, color: '#ef4444' },
-        { label: 'Feedback', route: '/admin/feedback', icon: '⭐' }
       ]
     },
     {
@@ -1233,39 +1217,4 @@ export class AdminLayout implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 }
-
-/* ============================================
-   HOW TO USE THIS LAYOUT COMPONENT
-   ============================================
-
-   1. Update your app.routes.ts for admin routes:
-
-   {
-     path: 'admin',
-     component: AdminLayout,  // Use the layout as wrapper
-     canActivate: [authGuard, roleGuard],
-     data: { roles: [Role.Admin] },
-     children: [
-       {
-         path: 'dashboard',
-         loadComponent: () => import('./components/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard)
-       },
-       {
-         path: 'loan-schemes',
-         loadComponent: () => import('./components/loan-schemes/loan-schemes').then(m => m.LoanSchemes)
-       },
-       // ... all other admin routes
-     ]
-   }
-
-   2. Remove AdminNavbar from individual admin components
-
-   3. The layout will:
-      - Show navbar at top
-      - Show sidebar on left (hidden by default, toggle with button)
-      - Render your admin components in the content area
-      - Automatically adjust margins when sidebar opens/closes
-      - Be fully responsive
-
-   ============================================
-*/
+   

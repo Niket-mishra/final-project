@@ -1,17 +1,15 @@
-
-
-
 // src/app/components/make-payment.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PaymentService } from '../../services/payment-service';
 import { CustomerService } from '../../services/customer-service';
 import { Auth } from '../../services/auth';
 import { Customer } from '../../models/customer';
-import { switchMap, catchError, finalize } from 'rxjs/operators';
+import { RepaymentService } from '../../services/repayment-service';
+import { Repayment } from '../../models/repayment';
 import { of, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil } from 'rxjs/operators';
+import { UserService } from '../../services/user-service';
 
 declare var Razorpay: any;
 
@@ -26,7 +24,7 @@ interface CustomerInfo {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './make-payment.html',
-  styleUrl: './make-payment.css'
+  styleUrls: ['./make-payment.css']
 })
 export class MakePayment implements OnInit, OnDestroy {
   amount = 0;
@@ -35,6 +33,7 @@ export class MakePayment implements OnInit, OnDestroy {
   errorMessage = '';
   agreedToTerms = false;
   id!: number;
+  custId!: number;
   customerInfo: CustomerInfo | null = null;
   quickAmounts = [500, 1000, 2500, 5000, 10000, 25000];
 
@@ -42,51 +41,57 @@ export class MakePayment implements OnInit, OnDestroy {
   private rzpInstance: any = null;
 
   constructor(
-    private paymentService: PaymentService,
     private customerService: CustomerService,
-    private auth: Auth
+    private repaymentService: RepaymentService,
+    private userService: UserService,
+    private auth: Auth,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.id = this.auth.getUserId() ?? 0;
-    this.loadCustomerInfo();
+    
     this.loadRazorpayScript();
+      this.loadCustomerInfo();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    
-    // Clean up Razorpay instance
     if (this.rzpInstance) {
       this.rzpInstance = null;
     }
   }
 
   loadCustomerInfo(): void {
-    this.customerService.getCustomerById(this.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (cust: Customer | null) => {
-          if (cust) {
-            this.customerInfo = {
-              name: `${cust.firstName || ''} ${cust.lastName || ''}`.trim() || 'Customer',
-              email: cust.user?.email || 'customer@example.com',
-              phone: cust.user?.phoneNumber || '9876543210'
-            };
-          }
-        },
-        error: () => {
-          this.errorMessage = 'Failed to load customer details.';
+    this.userService.getRoleEntityId(this.id)
+    .pipe(
+      takeUntil(this.destroy$),
+      switchMap(({ roleEntityId }) => {
+        this.custId = roleEntityId;
+        return this.customerService.getCustomerById(this.custId);
+      })
+    )
+    .subscribe({
+      next: (cust: Customer | null) => {
+        if (cust) {
+          this.customerInfo = {
+            name: `${cust.firstName || ''} ${cust.lastName || ''}`.trim() || 'Customer',
+            email: cust.user?.email || 'customer@example.com',
+            phone: cust.user?.phoneNumber || '9876543210'
+          };
         }
-      });
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load customer details.';
+      }
+    });
   }
 
   loadRazorpayScript(): void {
     if (typeof Razorpay !== 'undefined') {
       return;
     }
-
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
@@ -102,8 +107,7 @@ export class MakePayment implements OnInit, OnDestroy {
   }
 
   calculateProcessingFee(): number {
-    // 2% processing fee, max ₹100
-    return Math.min(Math.round(this.amount * 0.02), 100);
+    return Math.min(Math.round(this.amount * 0.02), 100); // 2% max ₹100
   }
 
   clearMessages(): void {
@@ -125,53 +129,34 @@ export class MakePayment implements OnInit, OnDestroy {
     }
 
     if (!this.customerInfo) {
-      this.errorMessage = 'Customer information is not loaded. Please refresh the page.';
+      this.errorMessage = 'Customer information not loaded. Please refresh.';
       return;
     }
 
     this.isSubmitting = true;
-
-    this.paymentService.createOrder(this.amount).pipe(
-      takeUntil(this.destroy$),
-      switchMap(order => {
-        if (!order || !order.orderId) {
-          throw new Error('Invalid order response');
-        }
-        this.launchRazorpay(order, this.customerInfo!);
-        return of(order);
-      }),
-      catchError(error => {
-        console.error('Payment initiation error:', error);
-        this.errorMessage = error?.error?.message || 'Failed to initiate payment. Please try again.';
-        this.isSubmitting = false;
-        return of(null);
-      })
-    ).subscribe();
+    this.launchRazorpay(this.customerInfo);
   }
 
-  launchRazorpay(order: any, cust: CustomerInfo): void {
+  launchRazorpay(cust: CustomerInfo): void {
     if (typeof Razorpay === 'undefined') {
-      this.errorMessage = 'Payment gateway not loaded. Please refresh the page.';
+      this.errorMessage = 'Payment gateway not loaded. Please refresh.';
       this.isSubmitting = false;
       return;
     }
 
     const options = {
-      key: order.key,
-      amount: order.amount,
-      currency: order.currency || 'INR',
+      key: 'rzp_test_RMguG9RxmKNynf', // 🔹 Replace with your test/live key
+      amount: this.amount * 100,   // in paise
+      currency: 'INR',
       name: 'New Loan Portal',
-      description: 'Loan Payment',
-      order_id: order.orderId,
+      description: 'Loan Repayment',
       handler: (response: any) => this.handlePaymentSuccess(response),
       prefill: {
         name: cust.name,
         email: cust.email,
         contact: cust.phone
       },
-      theme: {
-        color: '#0d6efd'
-      },
+      theme: { color: '#0d6efd' },
       modal: {
         ondismiss: () => this.handlePaymentDismiss(),
         escape: false,
@@ -181,15 +166,13 @@ export class MakePayment implements OnInit, OnDestroy {
 
     try {
       this.rzpInstance = new Razorpay(options);
-      
       this.rzpInstance.on('payment.failed', (response: any) => {
         this.handlePaymentFailure(response);
       });
-
       this.rzpInstance.open();
     } catch (error) {
-      console.error('Razorpay initialization error:', error);
-      this.errorMessage = 'Failed to open payment gateway. Please try again.';
+      console.error('Razorpay init error:', error);
+      this.errorMessage = 'Failed to open payment gateway.';
       this.isSubmitting = false;
     }
   }
@@ -197,11 +180,35 @@ export class MakePayment implements OnInit, OnDestroy {
   handlePaymentSuccess(response: any): void {
     this.successMessage = `Payment successful! Transaction ID: ${response.razorpay_payment_id}`;
     this.isSubmitting = false;
+
+    // 🔹 Save repayment into DB
+    const repaymentPayload: Repayment = {
+      repaymentId: 0,
+      loanId: 0, // ⚠️ TODO: if you have loanId in context, pass it here
+      amount: this.amount,
+      emiNumber: 1,
+      penaltyPaid: 0,
+      lateFee: 0,
+      paymentDate: new Date(),
+      dueDate: new Date(),
+      paymentMode: 'Razorpay',
+      transactionId: response.razorpay_payment_id,
+      paymentGatewayResponse: JSON.stringify(response),
+      paymentStatus: 'Completed',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    this.repaymentService.createRepayment(repaymentPayload).subscribe({
+      next: () => {
+        console.log('Repayment saved in DB ✅'),
+        this.cdr.markForCheck();
+      },
+      error: err => console.error('Failed to save repayment ❌', err)
+    });
+
     this.amount = 0;
     this.agreedToTerms = false;
-
-    // Send payment verification to backend
-    this.verifyPayment(response);
   }
 
   handlePaymentFailure(response: any): void {
@@ -213,22 +220,5 @@ export class MakePayment implements OnInit, OnDestroy {
   handlePaymentDismiss(): void {
     this.errorMessage = 'Payment cancelled by user.';
     this.isSubmitting = false;
-  }
-
-  verifyPayment(response: any): void {
-    // Implement backend verification call
-    const verificationData = {
-      razorpay_order_id: response.razorpay_order_id,
-      razorpay_payment_id: response.razorpay_payment_id,
-      razorpay_signature: response.razorpay_signature
-    };
-
-    // Call your backend verification service
-    // this.paymentService.verifyPayment(verificationData).subscribe({
-    //   next: () => console.log('Payment verified'),
-    //   error: (err) => console.error('Verification failed:', err)
-    // });
-    
-    console.log('Payment verification data:', verificationData);
   }
 }

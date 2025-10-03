@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { OfficerService } from '../../services/officer-service';
 import { Auth } from '../../services/auth';
 import { LoanApplication } from '../../models/loan-application';
-import { PaymentStatus } from '../../models/repayment';
 
 @Component({
   selector: 'app-repayment-schedule',
@@ -49,7 +48,7 @@ export class RepaymentSchedule implements OnInit {
     this.errorMessage = message;
     this.isLoading = false;
   }
-  getStatusColor(status?: PaymentStatus): string {
+  getStatusColor(status: string): string {
   switch (status) {
     case 'Completed': return 'success';
     case 'Pending': return 'warning';

@@ -1,5 +1,3 @@
-import { Loan } from "./loan";
-
 export interface Repayment {
   repaymentId: number;
   loanId: number;
@@ -12,14 +10,7 @@ export interface Repayment {
   paymentMode: string;
   transactionId: string;
   paymentGatewayResponse?: string;
-  paymentStatus?: PaymentStatus;
+  paymentStatus: 'Pending' | 'Completed' | 'Failed';
   createdAt: Date;
   updatedAt?: Date;
-  loan?: Loan;
-}
-
-export enum PaymentStatus {
-  Pending = 'Pending',
-  Completed = 'Completed',
-  Failed = 'Failed'
 }

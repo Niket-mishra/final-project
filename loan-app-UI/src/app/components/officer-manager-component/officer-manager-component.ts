@@ -144,6 +144,9 @@ export class OfficerManagerComponent implements OnInit {
 
     if (this.isEditing && this.editingOfficer) {
       const payload = { ...this.officerForm.value, officerId: this.editingOfficer.officerId };
+
+      console.log(payload);
+      
       this.officerService.updateOfficer(this.editingOfficer.officerId, payload).subscribe({
         next: () => onSuccess('✅ Officer updated'),
         error: () => onError('❌ Failed to update')

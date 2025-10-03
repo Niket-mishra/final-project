@@ -1,21 +1,252 @@
-<div class="card p-3 shadow-sm text-center">
-  <h6 class="fw-bold mb-2">📊 Workload Meter</h6>
-  <p class="mb-1"><strong>{{ officer.designation }}</strong> in {{ officer.city }}</p>
-
-  <div class="progress" style="height: 20px;">
-    <div
-      class="progress-bar bg-{{ getMeterColor() }}"
-      role="progressbar"
-      [style.width.%]="workloadPercentage"
-      aria-valuenow="{{ workloadPercentage }}"
-      aria-valuemin="0"
-      aria-valuemax="100"
-    >
-      {{ workloadPercentage }}%
+<div class="workload-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-speedometer2 text-primary me-2"></i>Officer Workload Monitor
+        </h3>
+        <p class="text-muted mb-0">Track and manage loan officer capacity</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadOfficers()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+      </button>
     </div>
   </div>
 
-  <small class="text-muted mt-2 d-block">
-    {{ officer.currentWorkload }} of {{ officer.maxLoansAssigned }} loans assigned
-  </small>
+  <!-- Summary Cards -->
+  @if (!isLoading && officers.length > 0) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ officers.length }}</div>
+            <div class="summary-label">Total Officers</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-success-subtle">
+          <div class="summary-icon bg-success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getAvailableCount() }}</div>
+            <div class="summary-label">Available</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-danger-subtle">
+          <div class="summary-icon bg-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getOverloadedCount() }}</div>
+            <div class="summary-label">Overloaded</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getAverageWorkload() }}%</div>
+            <div class="summary-label">Avg Workload</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading && officers.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters
+        </h6>
+        <span class="badge bg-secondary fs-6 py-2 px-3">
+          <i class="bi bi-briefcase me-1"></i>{{ getTotalLoansAssigned() }} Total Loans
+        </span>
+      </div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search officers..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="cityFilter" (change)="applyFilters()">
+            <option value="">All Cities</option>
+            @for (city of getUniqueCities(); track city) {
+              <option [value]="city">{{ city }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="workloadFilter" (change)="applyFilters()">
+            <option value="">All Workload</option>
+            <option value="available">Available (&lt;50%)</option>
+            <option value="moderate">Moderate (50-80%)</option>
+            <option value="overloaded">Overloaded (80%+)</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="workload-desc">Highest Load</option>
+            <option value="workload-asc">Lowest Load</option>
+            <option value="name">By Name</option>
+            <option value="city">By City</option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3">
+        <small class="text-muted">
+          Showing <strong>{{ filteredOfficers.length }}</strong> of <strong>{{ officers.length }}</strong> officers
+          @if (searchTerm || cityFilter || workloadFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading officer workload data...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (officers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-person-x"></i>
+      </div>
+      <h5 class="mt-3">No Officers Found</h5>
+      <p class="text-muted">No loan officers are registered in the system.</p>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredOfficers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- Officers Grid -->
+  @else {
+    <div class="officers-grid">
+      @for (officer of filteredOfficers; track officer.officerId) {
+        <div class="workload-card" [class.overloaded]="getWorkloadPercentage(officer) >= 80">
+          <!-- Officer Header -->
+          <div class="officer-header">
+            <div class="officer-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="officer-info">
+              <h6 class="officer-name">{{ officer.user.username }} - <span class="text-muted" style="font-size: small;">{{officer.designation}}</span></h6>
+              
+              <small class="officer-location">
+                <i class="bi bi-geo-alt"></i>
+                {{ officer.city }}
+              </small>
+            </div>
+          </div>
+
+          <!-- Workload Meter -->
+          <div class="workload-section">
+            <div class="workload-header">
+              <span class="workload-label">Workload Capacity</span>
+              <span class="workload-percentage" [ngClass]="'text-' + getMeterColor(officer)">
+                {{ getWorkloadPercentage(officer) }}%
+              </span>
+            </div>
+
+            <div class="progress workload-progress">
+              <div
+                class="progress-bar progress-bar-striped"
+                [ngClass]="'bg-' + getMeterColor(officer)"
+                role="progressbar"
+                [style.width.%]="getWorkloadPercentage(officer)"
+                [attr.aria-valuenow]="getWorkloadPercentage(officer)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+
+            <div class="workload-details">
+              <div class="workload-stat">
+                <i class="bi bi-briefcase text-primary"></i>
+                <span>{{ officer.currentWorkload }} / {{ officer.maxLoansAssigned }}</span>
+              </div>
+              <div class="workload-stat">
+                <i class="bi bi-clipboard-check text-success"></i>
+                <span>{{ officer.maxLoansAssigned - officer.currentWorkload }} available</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="status-section">
+            @if (getWorkloadPercentage(officer) >= 80) {
+              <span class="status-badge status-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Overloaded
+              </span>
+            } @else if (getWorkloadPercentage(officer) >= 50) {
+              <span class="status-badge status-warning">
+                <i class="bi bi-dash-circle-fill"></i>
+                Moderate
+              </span>
+            } @else {
+              <span class="status-badge status-success">
+                <i class="bi bi-check-circle-fill"></i>
+                Available
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>
+

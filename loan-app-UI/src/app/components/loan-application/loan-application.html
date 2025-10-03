@@ -1,69 +1,536 @@
-<div class="container py-4">
-  <h2 class="mb-4">Loan Applications</h2>
+<div class="applications-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-file-earmark-text text-primary me-2"></i>Loan Applications
+        </h3>
+        <p class="text-muted mb-0">Review and manage all loan applications</p>
+      </div>
+      <div class="d-flex gap-2">
+        <span class="badge bg-secondary fs-6 py-2 px-3">
+          <i class="bi bi-files me-1"></i>{{ applications.length }} Total
+        </span>
+        <button class="btn btn-outline-primary" (click)="fetchApplications()">
+          <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Status Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="summary-card bg-warning-subtle">
+        <div class="summary-icon bg-warning">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="summary-content">
+          <div class="summary-value">{{ getStatusCount(Status.Pending) }}</div>
+          <div class="summary-label">Pending Review</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="summary-card bg-success-subtle">
+        <div class="summary-icon bg-success">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="summary-content">
+          <div class="summary-value">{{ getStatusCount(Status.Approved) }}</div>
+          <div class="summary-label">Approved</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="summary-card bg-danger-subtle">
+        <div class="summary-icon bg-danger">
+          <i class="bi bi-x-circle"></i>
+        </div>
+        <div class="summary-content">
+          <div class="summary-value">{{ getStatusCount(Status.Rejected) }}</div>
+          <div class="summary-label">Rejected</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="summary-card bg-primary-subtle">
+        <div class="summary-icon bg-primary">
+          <i class="bi bi-cash-coin"></i>
+        </div>
+        <div class="summary-content">
+          <div class="summary-value">{{ getStatusCount(Status.Disbursed) }}</div>
+          <div class="summary-label">Disbursed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Messages -->
   @if (error) {
-    <div class="alert alert-danger">{{ error }}</div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
   }
 
   @if (success) {
-    <div class="alert alert-success">{{ success }}</div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+      <button type="button" class="btn-close" (click)="success = ''"></button>
+    </div>
   }
 
-  <div class="row g-3">
-    @for (app of applications; track app.applicationId) {
-      <div class="col-md-6">
-        <div class="card shadow-sm border-0">
-          <div class="card-body">
-            <h5 class="card-title">Application #{{ app.applicationId }}</h5>
-            <p><strong>Customer:</strong> {{ app.customer?.firstName }} {{ app.customer?.lastName ?? '' }}</p>
-            <p><strong>Scheme:</strong> {{ app.loanScheme?.schemeName ?? 'N/A' }}</p>
-            <p><strong>Amount:</strong> {{ formatCurrency(app.requestedAmount) }}</p>
-            <p>
-              <strong>Status:</strong>
-              <span class="badge bg-{{ getStatusColor(app.status) }}">{{ app.status }}</span>
-            </p>
+  <!-- Filters & Actions -->
+  @if (!isLoading && applications.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Actions
+        </h6>
+        <div class="d-flex gap-2">
+          @if (selectedApplications.size > 0) {
+            <button class="btn btn-sm btn-success" (click)="bulkApprove()">
+              <i class="bi bi-check-all me-1"></i>Approve ({{ selectedApplications.size }})
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="bulkReject()">
+              <i class="bi bi-x-lg me-1"></i>Reject ({{ selectedApplications.size }})
+            </button>
+          }
+          <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+            <i class="bi bi-download me-1"></i>Export
+          </button>
+        </div>
+      </div>
 
-            <div class="mt-3">
-              <button class="btn btn-sm btn-success me-2" (click)="updateStatus(app, Status.Approved)">Approve</button>
-              <button class="btn btn-sm btn-danger me-2" (click)="updateStatus(app, Status.Rejected)">Reject</button>
-              <button class="btn btn-sm btn-secondary me-2" (click)="updateStatus(app, Status.Pending)">Reset</button>
-              <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(app)">Update</button>
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by name, ID, purpose..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="filterStatus" (change)="applyFilters()">
+            <option value="">All Status</option>
+            <option [value]="Status.Pending">Pending</option>
+            <option [value]="Status.Approved">Approved</option>
+            <option [value]="Status.Rejected">Rejected</option>
+            <option [value]="Status.Disbursed">Disbursed</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="date">Sort by Date</option>
+            <option value="amount">Sort by Amount</option>
+            <option value="status">Sort by Status</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedApplications.length }}</strong> of <strong>{{ filteredApplications.length }}</strong> applications
+          @if (searchTerm || filterStatus) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+        @if (paginatedApplications.length > 0) {
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [(ngModel)]="selectAll"
+              (change)="toggleSelectAll()"
+              id="selectAllCheckbox"
+            />
+            <label class="form-check-label" for="selectAllCheckbox">
+              <small>Select all on page</small>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading applications...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (applications.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h5 class="mt-3">No Applications Found</h5>
+      <p class="text-muted">No loan applications have been submitted yet.</p>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredApplications.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- Applications Grid -->
+  @else {
+    <div class="applications-grid mb-4">
+      @for (app of paginatedApplications; track app.applicationId) {
+        <div class="application-card" [class.card-selected]="isApplicationSelected(app.applicationId)">
+          <!-- Selection Checkbox -->
+          <div class="card-selection">
+            <input 
+              type="checkbox" 
+              class="form-check-input"
+              [checked]="isApplicationSelected(app.applicationId)"
+              (change)="toggleSelectApplication(app.applicationId)"
+            />
+          </div>
+
+          <!-- Card Header -->
+          <div class="app-card-header">
+            <div>
+              <h6 class="mb-1 fw-bold">
+                <i class="bi bi-hash"></i>{{ app.applicationId }}
+              </h6>
+              <small class="text-muted">
+                <i class="bi bi-calendar3"></i> {{ formatDate(app.applicationDate) }}
+              </small>
+            </div>
+            <span class="status-badge badge-{{ getStatusColor(app.status) }}">
+              <i class="{{ getStatusIcon(app.status) }} me-1"></i>
+              {{ app.status }}
+            </span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="app-card-body">
+            <!-- Customer Info -->
+            <div class="customer-section">
+              <div class="customer-avatar">
+                <i class="bi bi-person-circle"></i>
+              </div>
+              <div class="customer-info">
+                <div class="customer-name">{{ app.customer?.firstName }} {{ app.customer?.lastName }}</div>
+                <small class="text-muted">ID: {{ app.customer?.customerId }}</small>
+              </div>
+            </div>
+
+            <!-- Amount Display -->
+            <div class="amount-section">
+              <div class="amount-label">Requested Amount</div>
+              <div class="amount-value">{{ formatCurrency(app.requestedAmount) }}</div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="details-grid">
+              <div class="detail-item">
+                <i class="bi bi-briefcase text-primary"></i>
+                <div class="detail-text">
+                  <small class="text-muted d-block">Scheme</small>
+                  <span>{{ app.loanScheme?.schemeName ?? 'N/A' }}</span>
+                </div>
+              </div>
+              <div class="detail-item">
+                <i class="bi bi-tag text-success"></i>
+                <div class="detail-text">
+                  <small class="text-muted d-block">Purpose</small>
+                  <span class="text-truncate">{{ app.purposeOfLoan }}</span>
+                </div>
+              </div>
+            </div>
+
+            @if (app.submittedDocuments) {
+              <div class="mt-2">
+                <span class="badge bg-light text-dark">
+                  <i class="bi bi-paperclip"></i> Documents Attached
+                </span>
+              </div>
+            }
+          </div>
+
+          <!-- Card Actions -->
+          <div class="app-card-actions">
+            <div class="action-buttons">
+              @if (app.status !== Status.Approved) {
+                <button 
+                  class="btn btn-sm btn-success"
+                  (click)="updateStatus(app, Status.Approved)"
+                  [disabled]="isUpdating"
+                  title="Approve">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+              }
+              @if (app.status !== Status.Rejected) {
+                <button 
+                  class="btn btn-sm btn-danger"
+                  (click)="updateStatus(app, Status.Rejected)"
+                  [disabled]="isUpdating"
+                  title="Reject">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              }
+              <button 
+                class="btn btn-sm btn-outline-primary"
+                (click)="openEditModal(app)"
+                title="Edit">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-info"
+                (click)="openDetailsModal(app)"
+                title="View Details">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav aria-label="Application pagination">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredApplications.length) }} of {{ filteredApplications.length }})
+          </small>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Edit Modal -->
+  <app-modal-wrapper 
+    [title]="'Update Application #' + editApplication?.applicationId" 
+    [show]="showEditModal" 
+    (close)="cancelEdit()">
+    @if(editApplication) {
+      <div>
+        <form #editForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Requested Amount *</label>
+            <div class="input-group">
+              <span class="input-group-text">₹</span>
+              <input 
+                type="number" 
+                class="form-control" 
+                [(ngModel)]="editApplication.requestedAmount"
+                name="amount"
+                required
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Purpose of Loan *</label>
+            <textarea 
+              class="form-control" 
+              rows="3"
+              [(ngModel)]="editApplication.purposeOfLoan"
+              name="purpose"
+              required
+              maxlength="500"
+            ></textarea>
+            <small class="text-muted">{{ editApplication.purposeOfLoan.length || 0 }}/500</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Employment Details *</label>
+            <textarea 
+              class="form-control" 
+              rows="2"
+              [(ngModel)]="editApplication.employmentDetails"
+              name="employment"
+              required
+              maxlength="300"
+            ></textarea>
+            <small class="text-muted">{{ editApplication.employmentDetails.length || 0 }}/300</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Document Path</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="editApplication.submittedDocuments"
+              name="documents"
+              placeholder="/documents/loan-application-docs.pdf"
+            />
+          </div>
+
+          <div class="d-flex gap-2">
+            <button 
+              class="btn btn-primary"
+              (click)="submitUpdate()"
+              [disabled]="!editForm.valid || isUpdating">
+              <i class="bi bi-save me-2"></i>Save Changes
+            </button>
+            <button 
+              class="btn btn-secondary"
+              (click)="cancelEdit()"
+              [disabled]="isUpdating">
+              Cancel
+            </button>
+          </div>
+
+          @if (updateError) {
+            <div class="alert alert-danger mt-3 mb-0">{{ updateError }}</div>
+          }
+          @if (updateSuccess) {
+            <div class="alert alert-success mt-3 mb-0">{{ updateSuccess }}</div>
+          }
+        </form>
+      </div>
+    }
+  </app-modal-wrapper>
+
+  <!-- Details Modal -->
+  <app-modal-wrapper 
+    [title]="'Application Details'" 
+    [show]="showDetailsModal" 
+    (close)="closeDetailsModal()">
+    @if (selectedApplication) {
+      <div class="details-modal-content">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Application ID</label>
+              <p class="detail-value">#{{ selectedApplication.applicationId }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Status</label>
+              <span class="status-badge badge-{{ getStatusColor(selectedApplication.status) }}">
+                <i class="{{ getStatusIcon(selectedApplication.status) }} me-1"></i>
+                {{ selectedApplication.status }}
+              </span>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Customer Name</label>
+              <p class="detail-value">
+                {{ selectedApplication.customer?.firstName }} {{ selectedApplication.customer?.lastName }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Customer ID</label>
+              <p class="detail-value">{{ selectedApplication.customer?.customerId }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Loan Scheme</label>
+              <p class="detail-value">{{ selectedApplication.loanScheme?.schemeName ?? 'N/A' }}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Requested Amount</label>
+              <p class="detail-value text-success fw-bold">
+                {{ formatCurrency(selectedApplication.requestedAmount) }}
+              </p>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="detail-box">
+              <label class="detail-label">Purpose of Loan</label>
+              <p class="detail-value">{{ selectedApplication.purposeOfLoan }}</p>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="detail-box">
+              <label class="detail-label">Employment Details</label>
+              <p class="detail-value">{{ selectedApplication.employmentDetails }}</p>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="detail-box">
+              <label class="detail-label">Submitted Documents</label>
+              <p class="detail-value">
+                {{ selectedApplication.submittedDocuments || 'No documents attached' }}
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="detail-box">
+              <label class="detail-label">Application Date</label>
+              <p class="detail-value">{{ formatDate(selectedApplication.applicationDate) }}</p>
             </div>
           </div>
         </div>
       </div>
-    }
-  </div>
-
-  <!-- 📝 Edit Modal -->
-  <app-modal-wrapper [title]="'Update Application'" [show]="showEditModal" (close)="cancelEdit()">
-    @if (editApplication) {
-      <div class="mb-3">
-        <label class="form-label">Requested Amount</label>
-        <input type="number" class="form-control mb-2" [(ngModel)]="editApplication.requestedAmount" />
-
-        <label class="form-label">Purpose of Loan</label>
-        <input type="text" class="form-control mb-2" [(ngModel)]="editApplication.purposeOfLoan" />
-
-        <label class="form-label">Employment Details</label>
-        <input type="text" class="form-control mb-2" [(ngModel)]="editApplication.employmentDetails" />
-
-        <label class="form-label">Submitted Documents</label>
-        <textarea class="form-control mb-2" [(ngModel)]="editApplication.submittedDocuments"></textarea>
-      </div>
-
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary btn-sm" (click)="submitUpdate()">Save Changes</button>
-        <button class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancel</button>
-      </div>
-
-      @if (updateError) {
-        <div class="text-danger mt-2">{{ updateError }}</div>
-      }
-
-      @if (updateSuccess) {
-        <div class="text-success mt-2">{{ updateSuccess }}</div>
-      }
     }
   </app-modal-wrapper>
 </div>

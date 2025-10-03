@@ -158,11 +158,14 @@ export class UserManagement implements OnInit, OnDestroy {
 
     const userData = {
       ...this.userForm,
+      passwordHash: this.userForm.password,
       createdAt: new Date().toISOString(),
       isDeleted: false
     };
 
     const payload: any = { ...userData };
+    console.log(payload);
+    
     if (this.userForm.password) {
       payload.password = this.userForm.password;
     }
@@ -177,6 +180,8 @@ export class UserManagement implements OnInit, OnDestroy {
           this.toast.success('User created successfully!');
           this.closeCreateModal();
           this.loadUsers();
+          setTimeout(() => this.cdr.detectChanges(), 1000);
+
         },
         error: () => {
           this.toast.error('Failed to create user');

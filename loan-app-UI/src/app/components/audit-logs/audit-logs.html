@@ -1,31 +1,245 @@
-<div class="audit-container">
-  <h4 class="text-center fw-bold mb-4">📜 Audit Trail</h4>
-
-  @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading audit logs...</p>
+<div class="audit-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-clock-history text-primary me-2"></i>Audit Trail
+        </h3>
+        <p class="text-muted mb-0">Application #{{ applicationId }} - Activity Log</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadAuditLogs()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+      </button>
     </div>
-  } @else {
-    @if (auditEntries.length === 0) {
-      <p class="text-muted text-center">No audit logs available for this application.</p>
-    } @else {
-      <ul class="list-group">
-        @for (entry of auditEntries; track entry.timestamp) {
-          <li class="list-group-item">
-            <div class="d-flex justify-content-between">
-              <div>
-                <strong>{{ entry.action }}</strong><br />
-                <small class="text-muted">By {{ entry.performedBy }}</small>
-              </div>
-              <span class="badge bg-info">{{ entry.timestamp | date:'medium' }}</span>
-            </div>
-            @if (entry.remarks) {
-              <p class="mt-2 mb-0 text-muted"><em>Remarks:</em> {{ entry.remarks }}</p>
+  </div>
+
+  <!-- Summary Stats -->
+  @if (!isLoading && auditEntries.length > 0) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-list-check"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ auditEntries.length }}</div>
+            <div class="summary-label">Total Activities</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-card bg-success-subtle">
+          <div class="summary-icon bg-success">
+            <i class="bi bi-person-check"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ uniquePerformersCount }}</div>
+            <div class="summary-label">Unique Users</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-layers"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getUniqueActions().length }}</div>
+            <div class="summary-label">Action Types</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters & Actions -->
+  @if (!isLoading && auditEntries.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Actions
+        </h6>
+        <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+          <i class="bi bi-download me-1"></i>Export Log
+        </button>
+      </div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search actions, users, remarks..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
             }
-          </li>
-        }
-      </ul>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="actionFilter" (change)="applyFilters()">
+            <option value="">All Actions</option>
+            @for (action of getUniqueActions(); track action) {
+              <option [value]="action">{{ action }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input 
+            type="date" 
+            class="form-control" 
+            [(ngModel)]="dateFilter"
+            (change)="applyFilters()"
+            placeholder="Filter by date"
+          />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedEntries.length }}</strong> of <strong>{{ filteredEntries.length }}</strong> entries
+          @if (searchTerm || actionFilter || dateFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading audit logs...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (auditEntries.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h5 class="mt-3">No Audit Logs Available</h5>
+      <p class="text-muted">No activities have been recorded for this application yet.</p>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredEntries.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- Timeline View -->
+  @else {
+    <div class="timeline-container mb-4">
+      @for (entry of paginatedEntries; track entry.timestamp) {
+        <div class="timeline-item">
+          <div class="timeline-marker" [ngClass]="'marker-' + getActionColor(entry.action)">
+            <i class="{{ getActionIcon(entry.action) }}"></i>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-card">
+              <div class="timeline-header">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="action-badge badge-{{ getActionColor(entry.action) }}">
+                    <i class="{{ getActionIcon(entry.action) }} me-1"></i>
+                    {{ entry.action }}
+                  </span>
+                  <span class="time-ago">
+                    <i class="bi bi-clock"></i>
+                    {{ getTimeAgo(entry.timestamp) }}
+                  </span>
+                </div>
+                <span class="timestamp-badge">
+                  {{ entry.timestamp | date:'MMM d, y h:mm a' }}
+                </span>
+              </div>
+              
+              <div class="timeline-body">
+                <div class="performer-info">
+                  <i class="bi bi-person-circle"></i>
+                  <span class="fw-semibold">{{ entry.performedBy }}</span>
+                </div>
+                
+                @if (entry.remarks) {
+                  <div class="remarks-section">
+                    <i class="bi bi-chat-left-quote"></i>
+                    <p class="mb-0">{{ entry.remarks }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav aria-label="Audit log pagination">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredEntries.length) }} of {{ filteredEntries.length }})
+          </small>
+        </div>
+      </div>
     }
   }
 </div>

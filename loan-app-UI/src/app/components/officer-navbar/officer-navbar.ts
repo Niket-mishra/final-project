@@ -1054,7 +1054,7 @@ export class OfficerLayout implements OnInit {
       items: [
         { label: 'Assigned Applications', route: '/officer/assigned-applications', icon: '📝' },
         { label: 'Loan Approvals', route: '/officer/loan-approvals', icon: '✅' },
-        { label: 'All Applications', route: '/applications/list', icon: '📄' }
+        { label: 'All Applications', route: '/officer/loan-applications', icon: '📄' }
       ]
     },
     {
@@ -1073,7 +1073,7 @@ export class OfficerLayout implements OnInit {
       items: [
         { label: 'Document Verification', route: '/officer/document-verification', icon: '✓' },
         { label: 'All Documents', route: '/officer/documents', icon: '📄' },
-        { label: 'Shared Documents', route: '/documents/list', icon: '📂' }
+        { label: 'Assigned Documents', route: '/officer/assigned-applications', icon: '📂' }
       ]
     },
     {
@@ -1081,10 +1081,10 @@ export class OfficerLayout implements OnInit {
       icon: '💰',
       expanded: false,
       items: [
-        { label: 'Active Loans', route: '/loans/list', icon: '💵' },
+        { label: 'Active Loans', route: '/officer/loan-applications', icon: '💵' },
         { label: 'Loan Schemes', route: '/officer/loan-schemes', icon: '📝' },
         { label: 'Repayments', route: '/officer/repayments', icon: '💸' },
-        { label: 'Repayment History', route: '/repayments/history', icon: '📊' }
+        { label: 'Repayment History', route: '/officer/repayments-schedule', icon: '📊' }
       ]
     },
     {

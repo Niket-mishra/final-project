@@ -1,18 +1,236 @@
-<div class="container py-4">
-  <h4 class="text-center fw-bold mb-4">📉 NPA Monitor</h4>
-
-  @if (isLoading) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-3">Loading NPA data...</p>
+<div class="npa-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-exclamation-triangle text-danger me-2"></i>NPA Monitor
+        </h3>
+        <p class="text-muted mb-0">Track and manage Non-Performing Assets</p>
+      </div>
+      <button class="btn btn-outline-danger" (click)="loadNPAs()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh Data
+      </button>
     </div>
-  } @else {
-    @if (npas.length === 0) {
-      <p class="text-muted text-center">No NPAs recorded.</p>
-    } @else {
-      <table class="table table-bordered table-hover">
-        <thead class="table-light">
+  </div>
+
+  <!-- Summary Cards -->
+  @if (!isLoading && npas.length > 0) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="summary-card bg-danger-subtle">
+          <div class="summary-icon bg-danger">
+            <i class="bi bi-exclamation-octagon"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ npas.length }}</div>
+            <div class="summary-label">Total NPAs</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-warning-subtle">
+          <div class="summary-icon bg-warning">
+            <i class="bi bi-currency-rupee"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">₹{{ getTotalOverdue() | number:'1.0-0' }}</div>
+            <div class="summary-label">Total Overdue</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-calendar-x"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getAverageDaysOverdue() }}</div>
+            <div class="summary-label">Avg Days Overdue</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-dark">
+          <div class="summary-icon bg-dark">
+            <i class="bi bi-graph-down-arrow"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value text-white">{{ getStatusCount('Loss') }}</div>
+            <div class="summary-label text-white-50">Loss Assets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="status-mini-card border-success">
+          <div class="status-count">{{ getStatusCount('Standard') }}</div>
+          <div class="status-label">Standard</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="status-mini-card border-warning">
+          <div class="status-count">{{ getStatusCount('Substandard') }}</div>
+          <div class="status-label">Substandard</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="status-mini-card border-danger">
+          <div class="status-count">{{ getStatusCount('Doubtful') }}</div>
+          <div class="status-label">Doubtful</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="status-mini-card border-dark">
+          <div class="status-count">{{ getStatusCount('Loss') }}</div>
+          <div class="status-label">Loss</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters & Actions -->
+  @if (!isLoading && npas.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Actions
+        </h6>
+        <div class="d-flex gap-2">
+          @if (selectedNpas.size > 0) {
+            <span class="badge bg-primary fs-6 py-2 px-3">
+              {{ selectedNpas.size }} Selected
+            </span>
+          }
+          <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+            <i class="bi bi-download me-1"></i>Export Report
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by Loan ID or amount..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+            <option value="">All Status</option>
+            <option value="Standard">Standard</option>
+            <option value="Substandard">Substandard</option>
+            <option value="Doubtful">Doubtful</option>
+            <option value="Loss">Loss</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="date-desc">Latest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Highest Amount</option>
+            <option value="amount-asc">Lowest Amount</option>
+            <option value="days-desc">Most Overdue</option>
+            <option value="days-asc">Least Overdue</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedNpas.length }}</strong> of <strong>{{ filteredNpas.length }}</strong> NPAs
+          @if (searchTerm || statusFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-danger"></i>
+              Filters active
+            </span>
+          }
+        </small>
+        @if (paginatedNpas.length > 0) {
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [(ngModel)]="selectAll"
+              (change)="toggleSelectAll()"
+              id="selectAllCheckbox"
+            />
+            <label class="form-check-label" for="selectAllCheckbox">
+              <small>Select all on page</small>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-danger mb-3" role="status"></div>
+      <p class="text-muted">Loading NPA data...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (npas.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon text-success">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <h5 class="mt-3 text-success">No NPAs Recorded</h5>
+      <p class="text-muted">Great news! There are no non-performing assets at this time.</p>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredNpas.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- NPA Table -->
+  @else {
+    <div class="table-responsive mb-4">
+      <table class="table table-hover npa-table">
+        <thead>
           <tr>
+            <th class="select-col">
+              <input 
+                type="checkbox" 
+                class="form-check-input"
+                [(ngModel)]="selectAll"
+                (change)="toggleSelectAll()"
+              />
+            </th>
+            <th>NPA ID</th>
             <th>Loan ID</th>
             <th>Days Overdue</th>
             <th>Overdue Amount</th>
@@ -21,17 +239,89 @@
           </tr>
         </thead>
         <tbody>
-          @for (npa of npas; track npa.npaId) {
-            <tr>
-              <td>{{ npa.loanId }}</td>
-              <td>{{ npa.daysOverdue }}</td>
-              <td>₹{{ npa.overdueAmount }}</td>
-              <td>{{ npa.npaDate | date:'mediumDate' }}</td>
-              <td><span class="badge bg-{{ getStatusColor(npa.npaStatus) }}">{{ npa.npaStatus }}</span></td>
+          @for (npa of paginatedNpas; track npa.npaId) {
+            <tr [class.row-selected]="isNpaSelected(npa.npaId)">
+              <td class="select-col">
+                <input 
+                  type="checkbox" 
+                  class="form-check-input"
+                  [checked]="isNpaSelected(npa.npaId)"
+                  (change)="toggleSelectNpa(npa.npaId)"
+                />
+              </td>
+              <td class="fw-semibold">#{{ npa.npaId }}</td>
+              <td>
+                <span class="loan-id-badge">
+                  <i class="bi bi-link-45deg"></i>
+                  {{ npa.loanId }}
+                </span>
+              </td>
+              <td>
+                <span class="days-badge" [ngClass]="getSeverityClass(npa.daysOverdue)">
+                  <i class="bi bi-clock-history"></i>
+                  {{ npa.daysOverdue }} days
+                </span>
+              </td>
+              <td class="fw-bold text-danger">₹{{ npa.overdueAmount | number:'1.0-0' }}</td>
+              <td>
+                <small class="text-muted">
+                  <i class="bi bi-calendar3"></i>
+                  {{ npa.npaDate | date:'dd MMM yyyy' }}
+                </small>
+              </td>
+              <td>
+                <span class="status-badge badge-{{ getStatusColor(npa.npaStatus) }}">
+                  <i class="{{ getStatusIcon(npa.npaStatus) }}"></i>
+                  {{ npa.npaStatus }}
+                </span>
+              </td>
             </tr>
           }
         </tbody>
       </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav aria-label="NPA pagination">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredNpas.length) }} of {{ filteredNpas.length }})
+          </small>
+        </div>
+      </div>
     }
   }
 </div>

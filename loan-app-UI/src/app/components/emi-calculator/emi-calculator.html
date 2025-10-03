@@ -1,28 +1,276 @@
 <div class="emi-calculator container py-4">
-  <h3 class="text-center fw-bold mb-4">📊 EMI Calculator</h3>
+  <div class="calculator-header mb-4">
+    <h3 class="fw-bold mb-2">EMI Calculator</h3>
+    <p class="text-muted mb-0">Calculate your loan EMI and view detailed breakdown</p>
+  </div>
 
-  <form class="calculator-form" (ngSubmit)="calculateEMI()" #form="ngForm">
-    <div class="mb-3">
-      <label class="form-label">Loan Amount (₹)</label>
-      <input type="number" class="form-control" [(ngModel)]="amount" name="amount" required min="1" />
+  <div class="row g-4">
+    <!-- Left Column - Calculator Form -->
+    <div class="col-lg-5">
+      <div class="calculator-card">
+        <h5 class="card-title">
+          <i class="bi bi-calculator me-2"></i>
+          Loan Details
+        </h5>
+
+        <form class="calculator-form" (ngSubmit)="calculateEMI()" #form="ngForm">
+          <!-- Loan Amount -->
+          <div class="input-group-wrapper">
+            <label class="form-label">
+              Loan Amount
+              <span class="value-display">₹{{ amount | number:'1.0-0' }}</span>
+            </label>
+            <input 
+              type="range" 
+              class="form-range" 
+              [(ngModel)]="amount" 
+              name="amount"
+              min="10000"
+              max="10000000"
+              step="10000"
+              (input)="calculateEMI()"
+            />
+            <input 
+              type="number" 
+              class="form-control mt-2" 
+              [(ngModel)]="amount" 
+              name="amountInput"
+              min="10000"
+              (input)="calculateEMI()"
+              placeholder="Enter amount"
+            />
+            <div class="range-labels">
+              <span>₹10K</span>
+              <span>₹1Cr</span>
+            </div>
+          </div>
+
+          <!-- Interest Rate -->
+          <div class="input-group-wrapper">
+            <label class="form-label">
+              Interest Rate
+              <span class="value-display">{{ interestRate }}% p.a.</span>
+            </label>
+            <input 
+              type="range" 
+              class="form-range" 
+              [(ngModel)]="interestRate" 
+              name="interestRate"
+              min="1"
+              max="20"
+              step="0.1"
+              (input)="calculateEMI()"
+            />
+            <input 
+              type="number" 
+              class="form-control mt-2" 
+              [(ngModel)]="interestRate" 
+              name="interestRateInput"
+              min="1"
+              step="0.1"
+              (input)="calculateEMI()"
+              placeholder="Enter rate"
+            />
+            <div class="range-labels">
+              <span>1%</span>
+              <span>20%</span>
+            </div>
+          </div>
+
+          <!-- Tenure -->
+          <div class="input-group-wrapper">
+            <label class="form-label">
+              Loan Tenure
+              <span class="value-display">{{ tenureMonths }} months ({{ (tenureMonths/12) | number:'1.0-1' }} years)</span>
+            </label>
+            <input 
+              type="range" 
+              class="form-range" 
+              [(ngModel)]="tenureMonths" 
+              name="tenureMonths"
+              min="6"
+              max="360"
+              step="6"
+              (input)="calculateEMI()"
+            />
+            <input 
+              type="number" 
+              class="form-control mt-2" 
+              [(ngModel)]="tenureMonths" 
+              name="tenureMonthsInput"
+              min="6"
+              (input)="calculateEMI()"
+              placeholder="Enter months"
+            />
+            <div class="range-labels">
+              <span>6 months</span>
+              <span>30 years</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mt-3">
+            <i class="bi bi-calculator me-2"></i>
+            Recalculate EMI
+          </button>
+        </form>
+      </div>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label">Interest Rate (%)</label>
-      <input type="number" class="form-control" [(ngModel)]="interestRate" name="interestRate" required min="0.1" step="0.01" />
-    </div>
+    <!-- Right Column - Results -->
+    <div class="col-lg-7">
+      @if (emi > 0) {
+        <!-- EMI Result Card -->
+        <div class="result-card mb-4">
+          <div class="emi-result">
+            <div class="emi-label">Monthly EMI</div>
+            <div class="emi-value">₹{{ emi | number:'1.0-0' }}</div>
+          </div>
+        </div>
 
-    <div class="mb-3">
-      <label class="form-label">Tenure (Months)</label>
-      <input type="number" class="form-control" [(ngModel)]="tenureMonths" name="tenureMonths" required min="1" />
-    </div>
+        <!-- Breakdown Cards -->
+        <div class="breakdown-grid mb-4">
+          <div class="breakdown-card">
+            <div class="breakdown-icon bg-primary">
+              <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="breakdown-content">
+              <div class="breakdown-label">Principal Amount</div>
+              <div class="breakdown-value">₹{{ principalAmount | number:'1.0-0' }}</div>
+            </div>
+          </div>
 
-    <button type="submit" class="btn btn-primary w-100">Calculate EMI</button>
-  </form>
+          <div class="breakdown-card">
+            <div class="breakdown-icon bg-warning">
+              <i class="bi bi-percent"></i>
+            </div>
+            <div class="breakdown-content">
+              <div class="breakdown-label">Total Interest</div>
+              <div class="breakdown-value">₹{{ totalInterest | number:'1.0-0' }}</div>
+            </div>
+          </div>
 
-  @if (emi > 0) {
-    <div class="result-box alert alert-success text-center mt-4">
-      <h5 class="mb-0">Estimated EMI: ₹{{ emi }}</h5>
+          <div class="breakdown-card">
+            <div class="breakdown-icon bg-success">
+              <i class="bi bi-calculator"></i>
+            </div>
+            <div class="breakdown-content">
+              <div class="breakdown-label">Total Payment</div>
+              <div class="breakdown-value">₹{{ totalPayment | number:'1.0-0' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Card -->
+        <div class="chart-card">
+          <h6 class="chart-title">Payment Breakdown</h6>
+          <div class="pie-chart">
+            <svg viewBox="0 0 200 200" class="donut-chart">
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="#e9ecef"
+                stroke-width="40"
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="#0d6efd"
+                stroke-width="40"
+                [attr.stroke-dasharray]="getPrincipalPercentage() * 5.03 + ' 502.4'"
+                transform="rotate(-90 100 100)"
+                class="donut-segment"
+              />
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="#ffc107"
+                stroke-width="40"
+                [attr.stroke-dasharray]="getInterestPercentage() * 5.03 + ' 502.4'"
+                [attr.stroke-dashoffset]="-getPrincipalPercentage() * 5.03"
+                transform="rotate(-90 100 100)"
+                class="donut-segment"
+              />
+            </svg>
+            <div class="chart-center">
+              <div class="center-value">{{ tenureMonths }}</div>
+              <div class="center-label">Months</div>
+            </div>
+          </div>
+
+          <div class="chart-legend">
+            <div class="legend-item">
+              <div class="legend-color bg-primary"></div>
+              <div class="legend-content">
+                <div class="legend-label">Principal ({{ getPrincipalPercentage() }}%)</div>
+                <div class="legend-value">₹{{ principalAmount | number:'1.0-0' }}</div>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color bg-warning"></div>
+              <div class="legend-content">
+                <div class="legend-label">Interest ({{ getInterestPercentage() }}%)</div>
+                <div class="legend-value">₹{{ totalInterest | number:'1.0-0' }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amortization Schedule Toggle -->
+        <div class="schedule-toggle mt-4">
+          <button class="btn btn-outline-primary w-100" (click)="toggleSchedule()">
+            <i [class]="showSchedule ? 'bi bi-chevron-up me-2' : 'bi bi-chevron-down me-2'"></i>
+            {{ showSchedule ? 'Hide' : 'Show' }} Amortization Schedule
+          </button>
+        </div>
+
+        <!-- Amortization Schedule Table -->
+        @if (showSchedule) {
+          <div class="schedule-card mt-3">
+            <div class="schedule-header">
+              <h6>Amortization Schedule</h6>
+              <small class="text-muted">Month-by-month payment breakdown</small>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover schedule-table">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>EMI</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of amortizationSchedule; track row.month) {
+                    <tr>
+                      <td>{{ row.month }}</td>
+                      <td>₹{{ row.emi | number:'1.0-0' }}</td>
+                      <td class="text-primary">₹{{ row.principal | number:'1.0-0' }}</td>
+                      <td class="text-warning">₹{{ row.interest | number:'1.0-0' }}</td>
+                      <td class="text-success">₹{{ row.balance | number:'1.0-0' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty-result">
+          <div class="empty-icon">
+            <i class="bi bi-calculator"></i>
+          </div>
+          <h5>Enter Loan Details</h5>
+          <p class="text-muted">Adjust the sliders or enter values to calculate your EMI</p>
+        </div>
+      }
     </div>
-  }
+  </div>
 </div>

@@ -5,7 +5,7 @@ import { Repayment } from '../models/repayment';
 
 @Injectable({ providedIn: 'root' })
 export class RepaymentService {
-  private readonly apiUrl = 'https://localhost:7262/api/repayments';
+  private readonly apiUrl = 'https://localhost:7262/api/Repayment';
 
   constructor(private http: HttpClient) {}
 

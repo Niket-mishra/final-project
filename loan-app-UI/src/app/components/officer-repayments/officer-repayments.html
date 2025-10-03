@@ -35,7 +35,7 @@
             @for (repayment of repayments; track repayment.repaymentId) {
               <tr>
                 <td>{{ repayment.loanId }}</td>
-                <td>{{ repayment.loan?.sanctionedAmount }}</td>
+                <td>{{ repayment.amount }}</td>
                 <td>{{ repayment.emiNumber }}</td>
                 <td>₹{{ repayment.amount }}</td>
                 <td>{{ repayment.dueDate | date:'mediumDate' }}</td>

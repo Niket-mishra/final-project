@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { OfficerService } from '../../services/officer-service';
 import { Auth } from '../../services/auth';
 import { Repayment } from '../../models/repayment';
+import { RepaymentService } from '../../services/repayment-service';
 
 @Component({
   selector: 'app-officer-repayments',
@@ -17,7 +18,7 @@ export class OfficerRepayments implements OnInit {
   repayments: Repayment[] = [];
 
   constructor(
-    private officerService: OfficerService,
+    private officerService: RepaymentService,
     private auth: Auth
   ) {}
 
@@ -29,7 +30,7 @@ export class OfficerRepayments implements OnInit {
       return;
     }
 
-    this.officerService.getRepaymentsByOfficer(officerId).subscribe({
+    this.officerService.getAllRepayments().subscribe({
       next: (data: Repayment[]) => {
         this.repayments = data;
         this.isLoading = false;

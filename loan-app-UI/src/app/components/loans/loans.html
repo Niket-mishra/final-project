@@ -1,15 +1,90 @@
-// src/app/components/all-loans.html
-<div class="loans-container container py-4">
+<div class="loans-container container-fluid py-4">
+  <!-- Header Section -->
   <div class="header-section mb-4">
-    <h4 class="fw-bold mb-2">💼 All Loans</h4>
-    <p class="text-muted">Manage and track all your loan applications</p>
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-wallet2 text-primary me-2"></i>Loan Management
+        </h3>
+        <p class="text-muted mb-0">Manage and track all loan accounts</p>
+      </div>
+      <button class="btn btn-primary" (click)="navigateToApply()">
+        <i class="bi bi-plus-circle me-2"></i>New Loan Application
+      </button>
+    </div>
   </div>
 
-  <!-- Filters and Search -->
+  <!-- Summary Cards -->
   @if (!isLoading && loans.length > 0) {
-    <div class="filters-section mb-4">
-      <div class="row g-3">
-        <div class="col-md-6">
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-files"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ loans.length }}</div>
+            <div class="summary-label">Total Loans</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-success-subtle">
+          <div class="summary-icon bg-success">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">₹{{ getTotalAmount() | number:'1.0-0' }}</div>
+            <div class="summary-label">Total Sanctioned</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getActiveLoansCount() }}</div>
+            <div class="summary-label">Active Loans</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-warning-subtle">
+          <div class="summary-icon bg-warning">
+            <i class="bi bi-arrow-down-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">₹{{ getTotalDisbursed() | number:'1.0-0' }}</div>
+            <div class="summary-label">Total Disbursed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters Section -->
+  @if (!isLoading && loans.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Search
+        </h6>
+        <div class="d-flex gap-2">
+          @if (selectedLoans.size > 0) {
+            <button class="btn btn-sm btn-outline-primary" (click)="bulkExport()">
+              <i class="bi bi-download me-1"></i>Export Selected ({{ selectedLoans.size }})
+            </button>
+          }
+          <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export All
+          </button>
+        </div>
+      </div>
+      
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
           <div class="search-box">
             <i class="bi bi-search"></i>
             <input 
@@ -17,53 +92,63 @@
               class="form-control" 
               placeholder="Search by loan ID or amount..."
               [(ngModel)]="searchTerm"
-              (input)="filterLoans()"
+              (input)="applyFilters()"
             />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
           </div>
         </div>
         <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="statusFilter" (change)="filterLoans()">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
             <option value="">All Status</option>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="ACTIVE">Active</option>
-            <option value="REJECTED">Rejected</option>
-            <option value="CLOSED">Closed</option>
+            <option value="Active">Active</option>
+            <option value="Completed">Completed</option>
+            <option value="NPA">NPA</option>
+            <option value="Closed">Closed</option>
           </select>
         </div>
         <div class="col-md-3">
-          <select class="form-select" [(ngModel)]="sortBy" (change)="sortLoans()">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applySorting()">
             <option value="date-desc">Newest First</option>
             <option value="date-asc">Oldest First</option>
             <option value="amount-desc">Highest Amount</option>
             <option value="amount-asc">Lowest Amount</option>
           </select>
         </div>
-      </div>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="summary-cards mb-4">
-      <div class="summary-card">
-        <div class="summary-icon">📊</div>
-        <div class="summary-content">
-          <div class="summary-label">Total Loans</div>
-          <div class="summary-value">{{ loans.length }}</div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-2"></i>Clear
+          </button>
         </div>
       </div>
-      <div class="summary-card">
-        <div class="summary-icon">💰</div>
-        <div class="summary-content">
-          <div class="summary-label">Total Amount</div>
-          <div class="summary-value">₹{{ getTotalAmount() | number:'1.0-0' }}</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-icon">✅</div>
-        <div class="summary-content">
-          <div class="summary-label">Active Loans</div>
-          <div class="summary-value">{{ getActiveLoansCount() }}</div>
-        </div>
+      
+      <div class="filter-info mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedLoans.length }}</strong> of <strong>{{ filteredLoans.length }}</strong> loans
+          @if (searchTerm || statusFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+        @if (paginatedLoans.length > 0) {
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [(ngModel)]="selectAll"
+              (change)="toggleSelectAll()"
+              id="selectAllCheckbox"
+            />
+            <label class="form-check-label" for="selectAllCheckbox">
+              <small>Select all on page</small>
+            </label>
+          </div>
+        }
       </div>
     </div>
   }
@@ -71,190 +156,190 @@
   <!-- Loading State -->
   @if (isLoading) {
     <div class="loading-state">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-3">Loading loans...</p>
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading loans...</p>
     </div>
   }
 
   <!-- Empty State -->
   @else if (loans.length === 0) {
     <div class="empty-state">
-      <div class="empty-icon">📋</div>
-      <h5>No Loans Found</h5>
-      <p class="text-muted">You don't have any loans yet. Apply for a new loan to get started.</p>
+      <div class="empty-icon">
+        <i class="bi bi-inbox"></i>
+      </div>
+      <h5 class="mt-3">No Loans Found</h5>
+      <p class="text-muted">No loan applications exist in the system yet.</p>
       <button class="btn btn-primary mt-3" (click)="navigateToApply()">
-        <i class="bi bi-plus-circle me-2"></i>Apply for Loan
+        <i class="bi bi-plus-circle me-2"></i>Create First Loan
+      </button>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredLoans.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
       </button>
     </div>
   }
 
   <!-- Loans Grid -->
-  @else if (filteredLoans.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">🔍</div>
-      <h5>No Results Found</h5>
-      <p class="text-muted">Try adjusting your filters or search terms.</p>
-      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
-        Clear Filters
-      </button>
-    </div>
-  }
-
   @else {
-    <div class="loans-grid">
-      @for (loan of filteredLoans; track loan.loanId) {
-        <div class="loan-card" [class.loan-card-active]="loan.loanStatus === 'ACTIVE'">
+    <div class="loans-grid mb-4">
+      @for (loan of paginatedLoans; track loan.loanId) {
+        <div class="loan-card-compact" [class.card-selected]="isLoanSelected(loan.loanId)">
+          <!-- Selection Checkbox -->
+          <div class="card-selection">
+            <input 
+              type="checkbox" 
+              class="form-check-input"
+              [checked]="isLoanSelected(loan.loanId)"
+              (change)="toggleSelectLoan(loan.loanId)"
+            />
+          </div>
+
           <!-- Card Header -->
-          <div class="loan-card-header">
-            <div class="loan-id">
-              <i class="bi bi-file-text me-2"></i>
-              Loan #{{ loan.loanId }}
+          <div class="card-header-compact">
+            <div class="loan-id-badge">
+              <i class="bi bi-hash"></i>{{ loan.loanId }}
             </div>
-            <span class="status-badge" [class]="'status-' + loan.loanStatus.toLowerCase()">
+            <span class="status-badge badge-{{ getStatusColor(loan.loanStatus) }}">
+              <i class="{{ getStatusIcon(loan.loanStatus) }} me-1"></i>
               {{ loan.loanStatus }}
             </span>
           </div>
 
           <!-- Card Body -->
-          <div class="loan-card-body">
-            <div class="loan-amount">
-              <div class="amount-label">Sanctioned Amount</div>
+          <div class="card-body-compact">
+            <div class="amount-display">
+              <div class="amount-label">Sanctioned</div>
               <div class="amount-value">₹{{ loan.sanctionedAmount | number:'1.0-0' }}</div>
             </div>
 
-            <div class="loan-details">
-              <div class="detail-row">
-                <span class="detail-label">
-                  <i class="bi bi-calendar-event"></i> Start Date
-                </span>
-                <span class="detail-value">
-                  {{ loan.loanStartDate | date:'MMM d, y' }}
-                </span>
+            <div class="loan-info-grid">
+              <div class="info-item">
+                <i class="bi bi-calendar3"></i>
+                <span>{{ loan.loanStartDate | date:'dd MMM yyyy' }}</span>
               </div>
-
-              @if (loan.loanEndDate) {
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="bi bi-calendar-check"></i> End Date
-                  </span>
-                  <span class="detail-value">
-                    {{ loan.loanEndDate | date:'MMM d, y' }}
-                  </span>
+              @if (loan.interestRateApplied) {
+                <div class="info-item">
+                  <i class="bi bi-percent"></i>
+                  <span>{{ loan.interestRateApplied }}% p.a.</span>
                 </div>
               }
-
-              @if (loan.interestRate) {
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="bi bi-percent"></i> Interest Rate
-                  </span>
-                  <span class="detail-value">
-                    {{ loan.interestRate }}% p.a.
-                  </span>
+              @if (loan.totalEmiCount) {
+                <div class="info-item">
+                  <i class="bi bi-calendar2-range"></i>
+                  <span>{{ loan.totalEmiCount }} months</span>
                 </div>
               }
-
-              @if (loan.tenure) {
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="bi bi-clock-history"></i> Tenure
-                  </span>
-                  <span class="detail-value">
-                    {{ loan.tenure }} months
-                  </span>
-                </div>
-              }
-
               @if (loan.emiAmount) {
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="bi bi-cash-coin"></i> EMI Amount
-                  </span>
-                  <span class="detail-value">
-                    ₹{{ loan.emiAmount | number:'1.0-0' }}
-                  </span>
+                <div class="info-item">
+                  <i class="bi bi-cash"></i>
+                  <span>₹{{ loan.emiAmount | number:'1.0-0' }}/mo</span>
                 </div>
               }
             </div>
+
+            <!-- Progress Bar for Active Loans -->
+            @if (loan.loanStatus === 'Active' && loan.remainingAmount !== undefined) {
+              <div class="progress-section">
+                <div class="progress-header">
+                  <small class="text-muted">Repayment</small>
+                  <small class="text-success fw-semibold">{{ getRepaymentProgress(loan) }}%</small>
+                </div>
+                <div class="progress progress-thin">
+                  <div 
+                    class="progress-bar bg-success" 
+                    [style.width.%]="getRepaymentProgress(loan)">
+                  </div>
+                </div>
+                <div class="progress-footer">
+                  <small>Paid: ₹{{ (loan.sanctionedAmount - loan.remainingAmount) | number:'1.0-0' }}</small>
+                  <small>Due: ₹{{ loan.remainingAmount | number:'1.0-0' }}</small>
+                </div>
+              </div>
+            }
           </div>
 
-          <!-- Card Footer -->
-          <div class="loan-card-footer">
+          <!-- Card Actions -->
+          <div class="card-actions-compact">
             <button 
-              class="btn btn-sm btn-outline-primary" 
+              class="btn-action btn-action-primary" 
               (click)="viewLoanDetails(loan.loanId)"
+              title="View Details"
             >
-              <i class="bi bi-eye me-1"></i>View Details
+              <i class="bi bi-eye"></i>
             </button>
             
-            @if (loan.loanStatus === 'ACTIVE') {
+            @if (loan.loanStatus === 'Active') {
               <button 
-                class="btn btn-sm btn-primary" 
+                class="btn-action btn-action-success" 
                 (click)="makePayment(loan.loanId)"
+                title="Make Payment"
               >
-                <i class="bi bi-credit-card me-1"></i>Pay EMI
+                <i class="bi bi-credit-card"></i>
               </button>
             }
 
-            @if (loan.loanStatus === 'PENDING') {
-              <button 
-                class="btn btn-sm btn-outline-danger" 
-                (click)="cancelLoan(loan.loanId)"
-              >
-                <i class="bi bi-x-circle me-1"></i>Cancel
-              </button>
-            }
+            <button 
+              class="btn-action btn-action-secondary" 
+              (click)="manageLoan(loan.loanId)"
+              title="Manage Loan"
+            >
+              <i class="bi bi-gear"></i>
+            </button>
           </div>
-
-          <!-- Progress Bar for Active Loans -->
-          @if (loan.loanStatus === 'ACTIVE' && loan.paidAmount !== undefined) {
-            <div class="loan-progress">
-              <div class="progress-info">
-                <span class="progress-label">Repayment Progress</span>
-                <span class="progress-percentage">
-                  {{ getRepaymentProgress(loan) }}%
-                </span>
-              </div>
-              <div class="progress">
-                <div 
-                  class="progress-bar" 
-                  role="progressbar" 
-                  [style.width.%]="getRepaymentProgress(loan)"
-                  [attr.aria-valuenow]="getRepaymentProgress(loan)"
-                  aria-valuemin="0" 
-                  aria-valuemax="100"
-                ></div>
-              </div>
-              <div class="progress-details">
-                <small>Paid: ₹{{ loan.paidAmount | number:'1.0-0' }}</small>
-                <small>Remaining: ₹{{ (loan.sanctionedAmount - loan.paidAmount) | number:'1.0-0' }}</small>
-              </div>
-            </div>
-          }
         </div>
       }
     </div>
 
     <!-- Pagination -->
-    @if (filteredLoans.length > itemsPerPage) {
-      <div class="pagination-section">
-        <button 
-          class="btn btn-outline-primary"
-          [disabled]="currentPage === 1"
-          (click)="previousPage()"
-        >
-          <i class="bi bi-chevron-left"></i> Previous
-        </button>
-        <span class="page-info">
-          Page {{ currentPage }} of {{ getTotalPages() }}
-        </span>
-        <button 
-          class="btn btn-outline-primary"
-          [disabled]="currentPage === getTotalPages()"
-          (click)="nextPage()"
-        >
-          Next <i class="bi bi-chevron-right"></i>
-        </button>
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav aria-label="Loan pagination">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredLoans.length) }} of {{ filteredLoans.length }})
+          </small>
+        </div>
       </div>
     }
   }

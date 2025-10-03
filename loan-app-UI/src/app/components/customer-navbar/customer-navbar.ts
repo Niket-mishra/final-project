@@ -1117,9 +1117,9 @@ export class CustomerLayout implements OnInit {
       icon: '📋',
       expanded: false,
       items: [
-        { label: 'Apply for Loan', route: '/applications/create', icon: '➕' },
-        { label: 'My Applications', route: '/applications/list', icon: '📝' },
-        { label: 'Application Status', route: '/customer/application-status', icon: '🔍' }
+        { label: 'Apply for Loan', route: '/customer/apply-loan', icon: '➕' },
+        { label: 'My Applications', route: '/customer/applications', icon: '📝' },
+        { label: 'EMI Calculator', route: '/customer/emi-calculator', icon: '🔍' }
       ]
     },
     {
@@ -1127,9 +1127,9 @@ export class CustomerLayout implements OnInit {
       icon: '📁',
       expanded: false,
       items: [
-        { label: 'Upload Documents', route: '/documents/upload', icon: '📤' },
-        { label: 'My Documents', route: '/documents/list', icon: '📄' },
-        { label: 'Document Status', route: '/customer/document-status', icon: '✓' }
+        { label: 'Upload Documents', route: '/customer/upload-documents', icon: '📤' },
+        { label: 'My Documents', route: '/customer/documents', icon: '📄' },
+        { label: 'Document Feedback', route: '/customer/documents/feedback', icon: '✓' }
       ]
     },
     {
@@ -1137,9 +1137,9 @@ export class CustomerLayout implements OnInit {
       icon: '💰',
       expanded: false,
       items: [
-        { label: 'Active Loans', route: '/loans/list', icon: '💵' },
+        { label: 'Active Loans', route: '/customer/my-loans', icon: '💵' },
         { label: 'Loan Schemes', route: '/customer/loan-schemes', icon: '📝' },
-        { label: 'Loan Details', route: '/customer/loan-details', icon: '📊' }
+        { label: 'My Loans', route: '/customer/my-loans', icon: '📊' }
       ]
     },
     {
@@ -1148,8 +1148,8 @@ export class CustomerLayout implements OnInit {
       expanded: false,
       items: [
         { label: 'Make Payment', route: '/customer/make-payment', icon: '💸' },
-        { label: 'Payment History', route: '/repayments/history', icon: '📊' },
-        { label: 'EMI Schedule', route: '/repayments/schedule', icon: '📅' }
+        { label: 'Payment History', route: '/customer/repayments', icon: '📊' },
+        { label: 'EMI Schedule', route: '/customer/repayment-schedule', icon: '📅' }
       ]
     },
     {
@@ -1157,9 +1157,9 @@ export class CustomerLayout implements OnInit {
       icon: '❓',
       expanded: false,
       items: [
-        { label: 'Raise Query', route: '/queries/create', icon: '✍️' },
-        { label: 'My Queries', route: '/queries/list', icon: '💬' },
-        { label: 'Help Center', route: '/customer/help', icon: '🆘' }
+        { label: 'Raise Query', route: '/customer/queries/create', icon: '✍️' },
+        { label: 'My Queries', route: '/customer/queries/list', icon: '💬' },
+        { label: 'Help Center', route: '/customer/help-center', icon: '🆘' }
       ]
     },
     {
