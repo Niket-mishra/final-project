@@ -1,46 +1,375 @@
-<div class="loan-approvals container py-4">
-  <h3 class="text-center fw-bold mb-4">📋 Pending Loan Approvals</h3>
+<div class="loan-approvals-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-clipboard-check text-primary me-2"></i>Pending Loan Approvals
+        </h3>
+        <p class="text-muted mb-0">Review and process pending loan applications</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadApplications()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+      </button>
+    </div>
+  </div>
 
-  @if (isLoading) {
-    <div class="text-center py-4">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2">Loading applications...</p>
+  <!-- Error Message -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
     </div>
   }
 
-  @if (!isLoading && errorMessage) {
-    <div class="alert alert-danger text-center">{{ errorMessage }}</div>
-  }
-
-  @if (!isLoading && applications.length === 0 && !errorMessage) {
-    <div class="text-center text-muted">No pending applications found.</div>
-  }
-
+  <!-- Summary Cards -->
   @if (!isLoading && applications.length > 0) {
-    <div class="row g-3">
-      @for (app of applications; track app.applicationId) {
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <h5 class="fw-bold">{{ app.customer?.firstName }}</h5>
-              <p class="text-muted">{{ app.loanScheme?.schemeName }}</p>
-              <p><strong>Requested Amount:</strong> ₹{{ app.requestedAmount }}</p>
-              <p><strong>Tenure:</strong> {{ app.loanScheme?.tenureMonths }} months</p>
-              <p><strong>Status:</strong>
-                <span class="badge bg-warning text-dark">Pending</span>
-              </p>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-success w-50" (click)="approve(app.applicationId)">
-                  ✅ Approve
-                </button>
-                <button class="btn btn-outline-danger w-50" (click)="reject(app.applicationId)">
-                  ❌ Reject
-                </button>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="summary-card bg-warning-subtle">
+          <div class="summary-icon bg-warning">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ applications.length }}</div>
+            <div class="summary-label">Pending Applications</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-currency-rupee"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ formatCurrency(getTotalAmount()) }}</div>
+            <div class="summary-label">Total Requested</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-eye"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ filteredApplications.length }}</div>
+            <div class="summary-label">In View</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading && applications.length > 0) {
+    <div class="filters-card mb-4">
+      <h6 class="mb-3 fw-semibold">
+        <i class="bi bi-funnel me-2"></i>Filters
+      </h6>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-4">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search by name, ID, scheme..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="date-desc">Latest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="amount-desc">Highest Amount</option>
+            <option value="amount-asc">Lowest Amount</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <input 
+            type="number" 
+            class="form-control" 
+            placeholder="Min Amount"
+            [(ngModel)]="minAmount"
+            (change)="applyFilters()"
+          />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedApplications.length }}</strong> of <strong>{{ filteredApplications.length }}</strong> applications
+          @if (searchTerm || minAmount > 0) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading pending applications...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (applications.length === 0 && !errorMessage) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-check-circle text-success"></i>
+      </div>
+      <h5 class="mt-3 text-success">All Clear!</h5>
+      <p class="text-muted">No pending applications require your attention.</p>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredApplications.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- Applications Grid -->
+  @else {
+    <div class="approvals-grid mb-4">
+      @for (app of paginatedApplications; track app.applicationId) {
+        <div class="approval-card">
+          <!-- Card Header -->
+          <div class="approval-card-header">
+            <div>
+              <h6 class="mb-0 fw-bold">
+                <i class="bi bi-hash"></i>{{ app.applicationId }}
+              </h6>
+              <small class="text-muted">
+                <i class="bi bi-calendar3"></i>
+                {{ app.applicationDate | date:'dd MMM yyyy' }}
+              </small>
+            </div>
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-clock-fill"></i>
+              Pending
+            </span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="approval-card-body">
+            <!-- Customer Info -->
+            <div class="customer-info">
+              <div class="customer-avatar">
+                {{ (app.customer?.firstName?.charAt(0) || 'C') + (app.customer?.lastName?.charAt(0) || '') }}
+              </div>
+              <div class="customer-details">
+                <div class="customer-name">{{ app.customer?.firstName }} {{ app.customer?.lastName }}</div>
+                <small class="text-muted">{{ app.customer?.city }}</small>
               </div>
             </div>
+
+            <!-- Amount Display -->
+            <div class="amount-display">
+              <div class="amount-label">Requested Amount</div>
+              <div class="amount-value">{{ formatCurrency(app.requestedAmount) }}</div>
+            </div>
+
+            <!-- Details -->
+            <div class="details-grid">
+              <div class="detail-item">
+                <i class="bi bi-briefcase text-primary"></i>
+                <div>
+                  <small class="text-muted d-block">Scheme</small>
+                  <span class="fw-semibold">{{ app.loanScheme?.schemeName || 'N/A' }}</span>
+                </div>
+              </div>
+              <div class="detail-item">
+                <i class="bi bi-calendar-range text-success"></i>
+                <div>
+                  <small class="text-muted d-block">Tenure</small>
+                  <span class="fw-semibold">{{ app.loanScheme?.tenureMonths }} months</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Purpose -->
+            <div class="purpose-section">
+              <small class="text-muted d-block mb-1">Purpose</small>
+              <p class="mb-0 text-truncate-2">{{ app.purposeOfLoan }}</p>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="approval-card-actions">
+            <button class="btn btn-sm btn-outline-info" (click)="viewDetails(app)">
+              <i class="bi bi-eye"></i> Details
+            </button>
+            <button class="btn btn-sm btn-success" (click)="approve(app.applicationId)">
+              <i class="bi bi-check-lg"></i> Approve
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="reject(app.applicationId)">
+              <i class="bi bi-x-lg"></i> Reject
+            </button>
           </div>
         </div>
       }
     </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav>
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredApplications.length) }} of {{ filteredApplications.length }})
+          </small>
+        </div>
+      </div>
+    }
   }
 </div>
+
+<!-- Details Modal -->
+@if (showDetailsModal && selectedApp) {
+  <div class="modal-backdrop show" (click)="closeDetails()"></div>
+  <div class="modal show d-block" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-file-text text-primary me-2"></i>
+            Application Details #{{ selectedApp.applicationId }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeDetails()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>Customer Name</label>
+                <p class="fw-semibold">{{ selectedApp.customer?.firstName }} {{ selectedApp.customer?.lastName }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>City</label>
+                <p>{{ selectedApp.customer?.city }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>Loan Scheme</label>
+                <p>{{ selectedApp.loanScheme?.schemeName }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>Requested Amount</label>
+                <p class="fw-bold text-primary">{{ formatCurrency(selectedApp.requestedAmount) }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>Tenure</label>
+                <p>{{ selectedApp.loanScheme?.tenureMonths }} months</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="detail-box">
+                <label>Application Date</label>
+                <p>{{ selectedApp.applicationDate | date:'dd MMM yyyy' }}</p>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="detail-box">
+                <label>Purpose of Loan</label>
+                <p>{{ selectedApp.purposeOfLoan }}</p>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="detail-box">
+                <label>Employment Details</label>
+                <p>{{ selectedApp.employmentDetails }}</p>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="form-group">
+                <label class="form-label fw-semibold">Remarks (Optional)</label>
+                <textarea 
+                  class="form-control" 
+                  rows="3"
+                  [(ngModel)]="remarks"
+                  placeholder="Enter approval/rejection remarks..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeDetails()">Close</button>
+          <button class="btn btn-danger" (click)="reject(selectedApp.applicationId)">
+            <i class="bi bi-x-lg me-2"></i>Reject
+          </button>
+          <button class="btn btn-success" (click)="approve(selectedApp.applicationId)">
+            <i class="bi bi-check-lg me-2"></i>Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

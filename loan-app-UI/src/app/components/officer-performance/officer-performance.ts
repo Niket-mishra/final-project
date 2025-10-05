@@ -7,6 +7,7 @@ import { OfficerService } from '../../services/officer-service';
 import { ToastService } from '../../services/toast-service';
 import { UserService } from '../../services/user-service';
 import { switchMap } from 'rxjs/operators';
+import { LoanApplication } from '../../models/loan-application';
 
 interface PerformanceMetrics {
   totalApplications: number;
@@ -58,31 +59,60 @@ export class OfficerPerformance implements OnInit {
       });
   }
 
-  loadPerformanceMetrics(): void {
-    this.officerService.getOfficerPerformance(this.officerId).subscribe({
-      next: (metrics) => {
-        this.performanceMetrics = metrics;
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.toast.error('Failed to load performance metrics');
-        this.isLoading = false;
-      }
-    });
-  }
+  private loadPerformanceMetrics(): void {
+  this.officerService.getAssignedApplications(this.officerId).subscribe({
+    next: (applications: LoanApplication[]) => {
+      const totalApplications = applications.length;
+      const approvedApplications = applications.filter(app => app.status === 'Approved').length;
+      const rejectedApplications = applications.filter(app => app.status === 'Rejected').length;
+      const pendingApplications = applications.filter(app => app.status === 'Pending').length;
+
+      const processingTimes = applications
+        .filter(app => app.approvalDate && app.officerAssignedDate)
+        .map(app => {
+          const assigned = app.officerAssignedDate!.getTime();
+          const approved = app.approvalDate!.getTime();
+          return (approved - assigned) / (1000 * 60 * 60 * 24); // days
+        });
+
+      const averageProcessingTime = processingTimes.length
+        ? Math.round(processingTimes.reduce((a, b) => a + b, 0) / processingTimes.length)
+        : 0;
+
+const satisfactionScore = this.officer?.performanceRating != null
+  ? this.officer.performanceRating * 2
+  : 0;
+  
+      this.performanceMetrics = {
+        totalApplications,
+        approvedApplications,
+        rejectedApplications,
+        pendingApplications,
+        averageProcessingTime,
+        satisfactionScore
+      };
+
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.toast.error('Failed to load performance metrics');
+      this.isLoading = false;
+    }
+  });
+}
 
   getRatingColor(): string {
     const rating = this.officer?.performanceRating ?? 0;
-    if (rating >= 4.5) return 'success';
-    if (rating >= 3.5) return 'info';
-    if (rating >= 2.5) return 'warning';
+    if (rating >= 8.5) return 'success';
+    if (rating >= 6.5) return 'info';
+    if (rating >= 4.5) return 'warning';
     return 'danger';
   }
 
   getRatingStars(): number[] {
     const rating = this.officer?.performanceRating ?? 0;
-    return Array(5).fill(0).map((_, i) => i < Math.round(rating) ? 1 : 0);
+    return Array(10).fill(0).map((_, i) => i < Math.round(rating) ? 1 : 0);
   }
 
   getWorkloadPercentage(): number {

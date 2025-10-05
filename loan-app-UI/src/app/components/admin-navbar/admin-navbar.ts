@@ -1069,7 +1069,7 @@ export class AdminLayout implements OnInit {
       icon: '💳',
       expanded: false,
       items: [
-        { label: 'Manage Repayments', route: '/admin/repayments-history', icon: '💸' },
+        { label: 'Manage Repayments', route: '/admin/repayments-list', icon: '💸' },
         { label: 'Manage NPA', route: '/admin/npa-monitoring', icon: '⚠️', badge: 5, color: '#f59e0b' },
       ]
     },

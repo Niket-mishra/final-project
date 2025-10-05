@@ -141,8 +141,13 @@
                 (click)="toggleSortOrder()"
                 title="Toggle sort order"
               >
-                <span *ngIf="sortOrder === 'asc'">↑</span>
-                <span *ngIf="sortOrder === 'desc'">↓</span>
+              @if (sortOrder === 'asc') {
+                <span>↑</span>
+              }
+              @if (sortOrder === 'desc') {
+                <span>↓</span>
+              }
+                
               </button>
             </div>
           </div>
@@ -226,7 +231,7 @@
                                 {{ app.officerAssignedDate ? (app.officerAssignedDate | date:'mediumDate') : '—' }}
                                 @if (app.officerAssignedDate) {
                                   <span class="badge bg-secondary ms-1">
-                                    {{ getDaysAssigned(app.officerAssignedDate ? app.officerAssignedDate.toISOString() : '') }}d ago
+                                    {{ getDaysAssigned( app.officerAssignedDate ) }}d ago
                                   </span>
                                 }
                               </strong>

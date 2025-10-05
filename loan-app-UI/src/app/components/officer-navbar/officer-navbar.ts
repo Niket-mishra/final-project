@@ -1084,7 +1084,6 @@ export class OfficerLayout implements OnInit {
         { label: 'Active Loans', route: '/officer/loan-applications', icon: '💵' },
         { label: 'Loan Schemes', route: '/officer/loan-schemes', icon: '📝' },
         { label: 'Repayments', route: '/officer/repayments', icon: '💸' },
-        { label: 'Repayment History', route: '/officer/repayments-schedule', icon: '📊' }
       ]
     },
     {

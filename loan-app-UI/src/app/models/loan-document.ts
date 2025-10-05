@@ -8,7 +8,7 @@ export interface LoanDocument {
   documentType: string;
   filePath: string;
   fileName: string;
-  uploadedAt: Date;
+  uploadedAt: Date | null;
   verificationStatus: DocumentStatus;
   verificationDate?: Date;
   verificationRemarks: string;

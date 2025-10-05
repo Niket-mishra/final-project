@@ -1,11 +1,20 @@
-<div class="customers-container container py-4">
+<div class="customers-container container-fluid py-4">
+  <!-- Header Section -->
   <div class="header-section mb-4">
-    <div>
-      <h2 class="fw-bold mb-2">Customer Management</h2>
-      <p class="text-muted mb-0">View and manage all customer profiles</p>
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-people text-primary me-2"></i>Customer Management
+        </h3>
+        <p class="text-muted mb-0">View and manage all customer profiles</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="loadCustomers()">
+        <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+      </button>
     </div>
   </div>
 
+  <!-- Error Alert -->
   @if (error) {
     <div class="alert alert-danger alert-dismissible fade show">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
@@ -15,53 +24,74 @@
 
   <!-- Stats Overview -->
   @if (!isLoading && customers.length > 0) {
-    <div class="stats-overview mb-4">
-      <div class="stat-card">
-        <div class="stat-icon bg-primary">
-          <i class="bi bi-people"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ customers.length }}</div>
-          <div class="stat-label">Total Customers</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-success">
-          <i class="bi bi-check-circle"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ getVerifiedCount() }}</div>
-          <div class="stat-label">Verified</div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ customers.length }}</div>
+            <div class="summary-label">Total Customers</div>
+          </div>
         </div>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-warning">
-          <i class="bi bi-clock-history"></i>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ getPendingCount() }}</div>
-          <div class="stat-label">Pending</div>
+      <div class="col-md-3">
+        <div class="summary-card bg-success-subtle">
+          <div class="summary-icon bg-success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getVerifiedCount() }}</div>
+            <div class="summary-label">Verified</div>
+          </div>
         </div>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-danger">
-          <i class="bi bi-x-circle"></i>
+      <div class="col-md-3">
+        <div class="summary-card bg-warning-subtle">
+          <div class="summary-icon bg-warning">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getPendingCount() }}</div>
+            <div class="summary-label">Pending</div>
+          </div>
         </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ getRejectedCount() }}</div>
-          <div class="stat-label">Rejected</div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-danger-subtle">
+          <div class="summary-icon bg-danger">
+            <i class="bi bi-x-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getRejectedCount() }}</div>
+            <div class="summary-label">Rejected</div>
+          </div>
         </div>
       </div>
     </div>
   }
 
-  <!-- Filters -->
+  <!-- Filters & Actions -->
   @if (!isLoading && customers.length > 0) {
-    <div class="filters-section mb-4">
-      <div class="row g-3">
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Actions
+        </h6>
+        <div class="d-flex gap-2">
+          @if (selectedCustomers.size > 0) {
+            <span class="badge bg-primary fs-6 py-2 px-3">
+              {{ selectedCustomers.size }} Selected
+            </span>
+          }
+          <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+            <i class="bi bi-download me-1"></i>Export
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-center">
         <div class="col-md-4">
           <div class="search-box">
             <i class="bi bi-search"></i>
@@ -72,6 +102,11 @@
               [(ngModel)]="searchTerm"
               (input)="filterCustomers()"
             />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; filterCustomers()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
           </div>
         </div>
         <div class="col-md-2">
@@ -100,9 +135,35 @@
         </div>
         <div class="col-md-2">
           <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
-            <i class="bi bi-x-circle me-2"></i>Clear
+            <i class="bi bi-x-circle me-1"></i>Clear
           </button>
         </div>
+      </div>
+
+      <div class="filter-info mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedCustomers.length }}</strong> of <strong>{{ filteredCustomers.length }}</strong> customers
+          @if (searchTerm || statusFilter || cityFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+        @if (paginatedCustomers.length > 0) {
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [(ngModel)]="selectAll"
+              (change)="toggleSelectAll()"
+              id="selectAllCheckbox"
+            />
+            <label class="form-check-label" for="selectAllCheckbox">
+              <small>Select all on page</small>
+            </label>
+          </div>
+        }
       </div>
     </div>
   }
@@ -110,8 +171,8 @@
   <!-- Loading State -->
   @if (isLoading) {
     <div class="loading-state">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-3">Loading customers...</p>
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading customers...</p>
     </div>
   }
 
@@ -121,7 +182,7 @@
       <div class="empty-icon">
         <i class="bi bi-people"></i>
       </div>
-      <h5>No Customers Found</h5>
+      <h5 class="mt-3">No Customers Found</h5>
       <p class="text-muted">There are no customers in the system yet.</p>
     </div>
   }
@@ -132,97 +193,144 @@
       <div class="empty-icon">
         <i class="bi bi-search"></i>
       </div>
-      <h5>No Results Found</h5>
+      <h5 class="mt-3">No Results Found</h5>
       <p class="text-muted">Try adjusting your filters or search terms.</p>
       <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
-        Clear Filters
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
       </button>
     </div>
   }
 
-  <!-- Customers Grid -->
+  <!-- Compact Customers Grid -->
   @else {
-    <div class="customers-grid">
-      @for (customer of filteredCustomers; track customer.customerId) {
-        <div class="customer-card" (click)="viewProfile(customer)">
-          <!-- Card Header -->
-          <div class="customer-header">
-            <div class="customer-avatar">
-              {{ getInitials(customer) }}
-            </div>
-            <div class="customer-name-section">
-              <h6 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h6>
-              <span class="badge status-badge" [class]="'bg-' + getStatusColor(customer.verificationStatus)">
-                {{ getStatusText(customer.verificationStatus) }}
-              </span>
-            </div>
+    <div class="customers-grid-compact mb-4">
+      @for (customer of paginatedCustomers; track customer.customerId) {
+        <div class="customer-card-compact" [class.card-selected]="isSelected(customer.customerId)">
+          <!-- Selection Checkbox -->
+          <div class="card-selection">
+            <input 
+              type="checkbox" 
+              class="form-check-input"
+              [checked]="isSelected(customer.customerId)"
+              (change)="toggleSelect(customer.customerId)"
+              (click)="$event.stopPropagation()"
+            />
           </div>
 
-          <!-- Card Body -->
-          <div class="customer-body">
-            <div class="info-row">
-              <i class="bi bi-envelope"></i>
-              <span>{{ customer.user?.email || customer.user!.email || '—' }}</span>
-            </div>
-
-            <div class="info-row">
-              <i class="bi bi-telephone"></i>
-              <span>{{ customer.user?.phoneNumber || customer.user?.phoneNumber || '—' }}</span>
-            </div>
-
-            <div class="info-row">
-              <i class="bi bi-geo-alt"></i>
-              <span>{{ customer.city || '—' }}, {{ customer.address || '—' }}</span>
-            </div>
-
-            <div class="info-row">
-              <i class="bi bi-briefcase"></i>
-              <span>{{ customer.occupation || '—' }}</span>
-            </div>
-
-            <div class="financial-info">
-              <div class="financial-item">
-                <div class="financial-label">Annual Income</div>
-                <div class="financial-value">₹{{ customer.annualIncome | number:'1.0-0' }}</div>
+          <!-- Card Content -->
+          <div class="customer-card-content" (click)="viewProfile(customer)">
+            <!-- Header -->
+            <div class="compact-header">
+              <div class="customer-avatar-small">
+                {{ getInitials(customer) }}
               </div>
-              <div class="financial-item">
-                <div class="financial-label">Credit Score</div>
-                <div class="financial-value">{{ customer.creditScore || 'N/A' }}</div>
+              <div class="customer-info-compact">
+                <h6 class="customer-name-compact">{{ customer.firstName }} {{ customer.lastName }}</h6>
+                <span class="status-badge-small badge-{{ getStatusColor(customer.verificationStatus) }}">
+                  {{ getStatusText(customer.verificationStatus) }}
+                </span>
               </div>
             </div>
-          </div>
 
-          <!-- Card Footer -->
-          <div class="customer-footer">
-            <button class="btn btn-sm btn-outline-primary w-100" (click)="viewProfile(customer); $event.stopPropagation()">
-              <i class="bi bi-eye me-2"></i>View Full Profile
+            <!-- Body -->
+            <div class="compact-body">
+              <div class="info-item-compact">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ customer.city || '—' }}</span>
+              </div>
+              <div class="info-item-compact">
+                <i class="bi bi-briefcase"></i>
+                <span>{{ customer.occupation || '—' }}</span>
+              </div>
+            </div>
+
+            <!-- Financial -->
+            <div class="financial-compact">
+              <div class="financial-mini">
+                <small>Income</small>
+                <strong>₹{{ customer.annualIncome | number:'1.0-0' }}</strong>
+              </div>
+              <div class="financial-mini">
+                <small>Credit</small>
+                <strong>{{ customer.creditScore || 'N/A' }}</strong>
+              </div>
+            </div>
+
+            <!-- Action -->
+            <button class="btn-view-compact" (click)="viewProfile(customer); $event.stopPropagation()">
+              <i class="bi bi-eye"></i>
+              View Profile
             </button>
           </div>
         </div>
       }
     </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination-wrapper">
+        <nav aria-label="Customer pagination">
+          <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+            </li>
+            
+            @for (page of getPageNumbers(); track page) {
+              @if (page === -1) {
+                <li class="page-item disabled">
+                  <span class="page-link">...</span>
+                </li>
+              } @else {
+                <li class="page-item" [class.active]="currentPage === page">
+                  <button class="page-link" (click)="goToPage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+              }
+            }
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="pagination-info text-center mt-2">
+          <small class="text-muted">
+            Page {{ currentPage }} of {{ totalPages }} 
+            ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+            {{ Math.min(currentPage * itemsPerPage, filteredCustomers.length) }} of {{ filteredCustomers.length }})
+          </small>
+        </div>
+      </div>
+    }
   }
 </div>
 
 <!-- Customer Profile Modal -->
 @if (showProfileModal && selectedCustomer) {
-  <div class="modal-backdrop" (click)="closeProfile()"></div>
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="bi bi-person-circle text-primary me-2"></i>
-          Customer Profile
-        </h5>
-        <button type="button" class="btn-close" (click)="closeProfile()"></button>
-      </div>
-      <div class="modal-body p-0">
-        <app-customer-details 
-          [selectedCustomer]="selectedCustomer"
-          (close)="closeProfile()"
-        ></app-customer-details>
+  <div class="modal-backdrop show" (click)="closeProfile()"></div>
+  <div class="modal show d-block" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-person-circle text-primary me-2"></i>
+            Customer Profile
+          </h5>
+          <button type="button" class="btn-close" (click)="closeProfile()"></button>
+        </div>
+        <div class="modal-body p-0">
+          <app-customer-details 
+            [selectedCustomer]="selectedCustomer"
+            (close)="closeProfile()"
+          ></app-customer-details>
+        </div>
       </div>
     </div>
   </div>
 }
-

@@ -5,6 +5,7 @@ import { Repayment } from '../models/repayment';
 
 @Injectable({ providedIn: 'root' })
 export class RepaymentService {
+  
   private readonly apiUrl = 'https://localhost:7262/api/Repayment';
 
   constructor(private http: HttpClient) {}
@@ -26,4 +27,8 @@ export class RepaymentService {
   getAllRepayments(): Observable<Repayment[]> {
   return this.http.get<Repayment[]>(`${this.apiUrl}`);
   }
+  updateRepayment(repaymentId: number, updatedRepayment: Partial<Repayment>): Observable<Repayment> {
+  const url = `${this.apiUrl}/repayments/${repaymentId}`;
+  return this.http.put<Repayment>(url, updatedRepayment);
+}
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { OfficerService } from '../../services/officer-service';
 import { Auth } from '../../services/auth';
 import { LoanApplication } from '../../models/loan-application';
+import { UserService } from '../../services/user-service';
 
 // officer-assignments.component.html
 
@@ -35,26 +36,38 @@ export class OfficerAssignments implements OnInit {
     totalAmount: 0
   };
 
-  constructor(private officerService: OfficerService, private auth: Auth) {}
+  constructor(private officerService: OfficerService, private auth: Auth, private userService: UserService) {}
 
   ngOnInit(): void {
-    const officerId = this.auth.getUserId();
-    if (typeof officerId !== 'number') {
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  const userId = this.auth.getUserId();
+  if (typeof userId !== 'number') {
+    this.handleError('User ID not found.');
+    return;
+  }
+
+  this.userService.getRoleEntityId(userId).subscribe({
+  next: ({ roleEntityId }) => {
+    if (typeof roleEntityId !== 'number') {
       this.handleError('Officer ID not found.');
       return;
     }
 
-    this.officerService.getAssignedApplications(officerId).subscribe({
-      next: (data: LoanApplication[]) => {
-        console.log(data);
-        this.applications = data;
+    this.officerService.getAssignedApplications(roleEntityId).subscribe({
+      next: (applications: LoanApplication[]) => {
+        this.applications = applications;
         this.calculateStats();
         this.applyFilters();
         this.isLoading = false;
       },
       error: () => this.handleError('Failed to load assigned applications.')
     });
-  }
+  },
+  error: () => this.handleError('Failed to retrieve officer ID.')
+});
+}
 
   private handleError(message: string): void {
     this.errorMessage = message;
@@ -145,7 +158,7 @@ export class OfficerAssignments implements OnInit {
     }
   }
 
-  getDaysAssigned(assignedDate: string): number {
+  getDaysAssigned(assignedDate: Date): number {
     if (!assignedDate) return 0;
     const assigned = new Date(assignedDate);
     const today = new Date();

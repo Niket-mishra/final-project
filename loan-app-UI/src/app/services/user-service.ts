@@ -8,6 +8,7 @@ import { Role, User } from "../models/user";
 })
 export class UserService {
   
+  
   private readonly apiUrl = 'https://localhost:7262/api/users'; 
 
   constructor(private http: HttpClient) {}
@@ -50,4 +51,13 @@ export class UserService {
     return this.http.get<{ roleEntityId: number }>(`${this.apiUrl}/role-id/${userId}`);
   }
 
+  changePassword(userId: number, currentPassword: string, newPassword: string): Observable<any> {
+  const url = `${this.apiUrl}/users/${userId}/change-password`;
+  const body = {
+    currentPassword,
+    newPassword
+  };
+
+  return this.http.patch(url, body);
+}
 }

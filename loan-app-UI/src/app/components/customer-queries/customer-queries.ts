@@ -1,5 +1,5 @@
 // src/app/components/customer-queries.ts
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CustomerQuery } from '../../models/customer-query';
@@ -47,6 +47,7 @@ export class CustomerQueries implements OnInit, OnDestroy {
   private auth = inject(Auth);
   private toast = inject(ToastService);
   private destroy$ = new Subject<void>();
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.customerId = this.auth.getUserId() ?? 0;
@@ -69,6 +70,7 @@ export class CustomerQueries implements OnInit, OnDestroy {
         next: (qs) => {
           this.queries = qs;
           this.filterQueries();
+        setTimeout(()=>this.cdr.markForCheck(),800);
         },
         error: () => {
           this.toast.error('Failed to load queries');

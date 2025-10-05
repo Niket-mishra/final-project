@@ -1,16 +1,21 @@
 
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DocumentService } from '../../services/document-service';
 import { LoanDocument } from '../../models/loan-document';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
+import { CustomerService } from '../../services/customer-service';
+import { LoanApplications } from '../loan-application/loan-application';
+import { LoanApplication } from '../../models/loan-application';
+import { LoanApplicationService } from '../../services/loan-application-service';
+import { UserService } from '../../services/user-service';
 
 @Component({
   selector: 'app-document-verification',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './document-verification.html',
   styleUrl: './document-verification.css'
 })
@@ -37,7 +42,13 @@ export class DocumentVerification implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private documentService: DocumentService) {}
+  constructor(
+  private documentService: DocumentService,
+  private customerService: CustomerService,
+  private cdr: ChangeDetectorRef,
+  private loanApplicationService : LoanApplicationService,
+  private userService : UserService
+) {}
 
   ngOnInit(): void {
     this.loadDocuments();
@@ -48,26 +59,74 @@ export class DocumentVerification implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadDocuments(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    
-    this.documentService.getPendingDocuments()
-      .pipe(
-        takeUntil(this.destroy$),
-        finalize(() => this.isLoading = false)
-      )
-      .subscribe({
-        next: (data: LoanDocument[]) => {
-          this.documents = data;
-          this.filterDocuments();
-        },
-        error: (error) => {
-          console.error('Error loading documents:', error);
-          this.errorMessage = 'Unable to load documents. Please try again.';
-        }
-      });
-  }
+ loadDocuments(): void {
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  this.documentService.getPendingDocuments()
+    .pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isLoading = false)
+    )
+    .subscribe({
+      next: (data: LoanDocument[]) => {
+        this.documents = data.map(doc => ({
+          ...doc,
+          uploadedAt: doc.uploadedAt ? new Date(doc.uploadedAt) : null
+        }));
+
+        this.documents.forEach(doc => {
+          if (!doc.applicationId) return;
+
+          // Step 1: Hydrate LoanApplication
+          this.loanApplicationService.getById(doc.applicationId).subscribe({
+            next: loanApp => {
+              doc.loanApplication = loanApp;
+
+              const customerId = loanApp.customerId;
+              if (!customerId) return;
+
+              // Step 2: Hydrate Customer
+              this.customerService.getCustomerById(customerId).subscribe({
+                next: customer => {
+                  if (!doc.loanApplication) return;
+                  doc.loanApplication.customer = customer;
+
+                  const userId = customer.userId;
+                  if (!userId) return;
+
+                  // Step 3: Hydrate User
+                  this.userService.getUserById(userId).subscribe({
+                    next: user => {
+                      if (!doc.loanApplication?.customer) return;
+                      doc.loanApplication.customer.user = user;
+                      this.cdr.markForCheck();
+                    },
+                    error: () => {
+                      console.warn(`Failed to hydrate user for customer #${customer.customerId}`);
+                      this.cdr.markForCheck();
+                    }
+                  });
+                },
+                error: () => {
+                  console.warn(`Failed to hydrate customer for application #${doc.applicationId}`);
+                }
+              });
+            },
+            error: () => {
+              console.warn(`Failed to hydrate loan application for document #${doc.documentId}`);
+            }
+          });
+        });
+
+        this.filterDocuments();
+      },
+      error: (error) => {
+        console.error('Error loading documents:', error);
+        this.errorMessage = 'Unable to load documents. Please try again.';
+      }
+    });
+}
 
   filterDocuments(): void {
     let filtered = [...this.documents];
@@ -97,12 +156,12 @@ export class DocumentVerification implements OnInit, OnDestroy {
     switch (this.sortBy) {
       case 'date-desc':
         this.filteredDocuments.sort((a, b) => 
-          new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+          new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime()
         );
         break;
       case 'date-asc':
         this.filteredDocuments.sort((a, b) => 
-          new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime()
+          new Date(a.uploadedAt || 0).getTime() - new Date(b.uploadedAt || 0).getTime()
         );
         break;
       case 'customer':
@@ -135,12 +194,14 @@ export class DocumentVerification implements OnInit, OnDestroy {
   }
 
   getTodayDocumentsCount(): number {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return this.documents.filter(doc => 
-      new Date(doc.uploadedAt) >= today
-    ).length;
-  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return this.documents.filter(doc => {
+    if (!doc.uploadedAt) return false;
+    return doc.uploadedAt >= today;
+  }).length;
+}
 
   getInitials(firstName?: string, lastName?: string): string {
     const first = firstName?.charAt(0) || '';
@@ -157,24 +218,30 @@ export class DocumentVerification implements OnInit, OnDestroy {
     return imageExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
   }
 
-  getWaitingTime(uploadedAt: string): string {
-    const uploaded = new Date(uploadedAt);
-    const now = new Date();
-    const diffMs = now.getTime() - uploaded.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
+  getWaitingTime(uploadedAt?: string | Date | null): string {
+  if (!uploadedAt) return 'Unknown';
+  const uploaded = new Date(uploadedAt);
+  if (isNaN(uploaded.getTime())) return 'Unknown';
 
-    if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-    if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
-    return 'Just now';
-  }
+  const now = new Date();
+  const diffMs = now.getTime() - uploaded.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
 
-  isUrgent(uploadedAt: string): boolean {
-    const uploaded = new Date(uploadedAt);
-    const now = new Date();
-    const diffHours = (now.getTime() - uploaded.getTime()) / (1000 * 60 * 60);
-    return diffHours > 24; // More than 24 hours
-  }
+  if (diffDays > 0) return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+  if (diffHours > 0) return `${diffHours} hour${diffHours > 1 ? 's' : ''}`;
+  return 'Just now';
+}
+
+isUrgent(uploadedAt?: string | Date | null): boolean {
+  if (!uploadedAt) return false;
+  const uploaded = new Date(uploadedAt);
+  if (isNaN(uploaded.getTime())) return false;
+
+  const now = new Date();
+  const diffHours = (now.getTime() - uploaded.getTime()) / (1000 * 60 * 60);
+  return diffHours > 24;
+}
 
   viewDocument(doc: LoanDocument): void {
     if (doc.filePath) {

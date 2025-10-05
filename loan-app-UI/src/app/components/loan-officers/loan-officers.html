@@ -1,127 +1,426 @@
-<div class="officer-container container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <h3 class="fw-bold text-gradient">👥 Loan Officers</h3>
-    <a class="btn btn-primary d-flex align-items-center gap-2" [routerLink]="['create']">
-      <i class="bi bi-person-plus"></i> Add Officer
-    </a>
-  </div>
-
-  <!-- Search, Filter, Page size, Toggle view -->
-  <div class="search-filter-bar d-flex flex-wrap gap-3 align-items-center p-3 rounded shadow-sm mb-4">
-    <input type="text" class="form-control" placeholder="Search officers..." [(ngModel)]="searchTerm" (input)="applyFilters()" />
-    <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
-      <option value="">All</option>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-    </select>
-    <select class="form-select" [(ngModel)]="pageSize" (change)="applyFilters()">
-      <option [value]="2" selected>2</option>
-      <option [value]="4">4</option>
-      <option [value]="10">10</option>
-    </select>
-    <div class="btn-group ms-auto">
-      <button class="btn btn-light" [class.active]="viewMode==='grid'" (click)="viewMode='grid'"><i class="bi bi-grid-3x3-gap"></i></button>
-      <button class="btn btn-light" [class.active]="viewMode==='list'" (click)="viewMode='list'"><i class="bi bi-list"></i></button>
+<div class="officers-container container-fluid py-4">
+  <!-- Header Section -->
+  <div class="header-section mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h3 class="fw-bold mb-1">
+          <i class="bi bi-people text-primary me-2"></i>Loan Officers
+        </h3>
+        <p class="text-muted mb-0">Manage loan officer assignments and performance</p>
+      </div>
+      <a class="btn btn-primary" [routerLink]="['create']">
+        <i class="bi bi-person-plus me-2"></i>Add Officer
+      </a>
     </div>
   </div>
 
-  <!-- Loader -->
-  <div *ngIf="isLoading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
-    <p class="mt-2 text-muted">Loading officers...</p>
-  </div>
-
-  <!-- Officers Table/Grid -->
-  <div *ngIf="!isLoading && filteredOfficers.length === 0" class="text-center text-muted">
-    No officers found.
-  </div>
-
-  <div *ngIf="!isLoading && filteredOfficers.length > 0">
-    <!-- Grid View -->
-    <div class="row g-4" *ngIf="viewMode==='grid'">
-      <div class="col-md-6 col-lg-4" *ngFor="let officer of paginatedOfficers; trackBy: trackByOfficerId">
-        <div class="card officer-card h-100 glass-card shadow-lg border-0">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="fw-bold mb-0">{{ officer.user.username }}</h5>
-              <span class="badge px-3 py-2" [ngClass]="officer.isActive ? 'bg-success' : 'bg-secondary'">
-                {{ officer.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </div>
-            <p class="text-muted small">{{ officer.designation }} — {{ officer.city }}</p>
-            <p><i class="bi bi-briefcase-fill text-info"></i> <strong> Specialization:</strong> {{ officer.specialization }}</p>
-            <p><i class="bi bi-bar-chart-fill text-success"></i> <strong> Workload:</strong> {{ officer.currentWorkload }}/{{ officer.maxLoansAssigned }}</p>
-            <p><i class="bi bi-star-fill text-warning"></i> <strong> Performance:</strong> {{ officer.performanceRating ?? 'N/A' }}</p>
-
-            <!-- Edit/Delete -->
-            <div class="d-flex gap-2 mt-3">
-              <a class="btn btn-sm btn-outline-primary" [routerLink]="[officer.officerId,'edit']">
-                <i class="bi bi-pencil-square"></i> Edit
-              </a>
-              <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(officer.officerId)">
-                <i class="bi bi-trash"></i> Delete
-              </button>
-            </div>
+  <!-- Summary Cards -->
+  @if (!isLoading && officers.length > 0) {
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="summary-card bg-primary-subtle">
+          <div class="summary-icon bg-primary">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ officers.length }}</div>
+            <div class="summary-label">Total Officers</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-success-subtle">
+          <div class="summary-icon bg-success">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getActiveCount() }}</div>
+            <div class="summary-label">Active</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-warning-subtle">
+          <div class="summary-icon bg-warning">
+            <i class="bi bi-pause-circle"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getInactiveCount() }}</div>
+            <div class="summary-label">Inactive</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="summary-card bg-info-subtle">
+          <div class="summary-icon bg-info">
+            <i class="bi bi-speedometer2"></i>
+          </div>
+          <div class="summary-content">
+            <div class="summary-value">{{ getAverageWorkload() }}%</div>
+            <div class="summary-label">Avg Workload</div>
           </div>
         </div>
       </div>
     </div>
+  }
 
-    <!-- List View -->
-     @if(viewMode==='list'){
-    <div class="table-responsive">
-      <table class="table table-hover align-middle shadow-sm rounded">
-        <thead class="table-light">
+  <!-- Filters & Actions -->
+  @if (!isLoading && officers.length > 0) {
+    <div class="filters-card mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h6 class="mb-0 fw-semibold">
+          <i class="bi bi-funnel me-2"></i>Filters & Actions
+        </h6>
+        <div class="d-flex gap-2 align-items-center">
+          @if (selectedOfficers.size > 0) {
+            <span class="badge bg-primary fs-6 py-2 px-3">
+              {{ selectedOfficers.size }} Selected
+            </span>
+          }
+          <button class="btn btn-sm btn-outline-success" (click)="exportToCSV()">
+            <i class="bi bi-download me-1"></i>Export
+          </button>
+          <div class="btn-group">
+            <button class="btn btn-sm" [class.btn-primary]="viewMode==='grid'" [class.btn-outline-secondary]="viewMode!=='grid'" (click)="viewMode='grid'">
+              <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <button class="btn btn-sm" [class.btn-primary]="viewMode==='list'" [class.btn-outline-secondary]="viewMode!=='list'" (click)="viewMode='list'">
+              <i class="bi bi-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search officers..."
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+            />
+            @if (searchTerm) {
+              <button class="search-clear" (click)="searchTerm = ''; applyFilters()">
+                <i class="bi bi-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" [(ngModel)]="cityFilter" (change)="applyFilters()">
+            <option value="">All Cities</option>
+            @for (city of getUniqueCities(); track city) {
+              <option [value]="city">{{ city }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+            <option value="name">Sort by Name</option>
+            <option value="city">Sort by City</option>
+            <option value="workload">Sort by Workload</option>
+            <option value="performance">Sort by Performance</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="bi bi-x-circle me-1"></i>Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-info mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Showing <strong>{{ paginatedOfficers.length }}</strong> of <strong>{{ filteredOfficers.length }}</strong> officers
+          @if (searchTerm || statusFilter || cityFilter) {
+            <span class="ms-2">
+              <i class="bi bi-filter-circle-fill text-primary"></i>
+              Filters active
+            </span>
+          }
+        </small>
+        @if (paginatedOfficers.length > 0 && viewMode === 'list') {
+          <div class="form-check">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              [(ngModel)]="selectAll"
+              (change)="toggleSelectAll()"
+              id="selectAllCheckbox"
+            />
+            <label class="form-check-label" for="selectAllCheckbox">
+              <small>Select all on page</small>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p class="text-muted">Loading officers...</p>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (officers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-people"></i>
+      </div>
+      <h5 class="mt-3">No Officers Found</h5>
+      <p class="text-muted">No loan officers have been added to the system yet.</p>
+      <a class="btn btn-primary mt-3" [routerLink]="['create']">
+        <i class="bi bi-person-plus me-2"></i>Add First Officer
+      </a>
+    </div>
+  }
+
+  <!-- No Results -->
+  @else if (filteredOfficers.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <h5 class="mt-3">No Results Found</h5>
+      <p class="text-muted">Try adjusting your filters or search terms.</p>
+      <button class="btn btn-outline-primary mt-3" (click)="clearFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset Filters
+      </button>
+    </div>
+  }
+
+  <!-- Grid View -->
+  @else if (viewMode === 'grid') {
+    <div class="officers-grid mb-4">
+      @for (officer of paginatedOfficers; track officer.officerId) {
+        <div class="officer-card-compact">
+          <!-- Card Header -->
+          <div class="officer-card-header">
+            <div class="officer-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="status-badge-compact" [ngClass]="officer.isActive ? 'badge-success' : 'badge-secondary'">
+              <i class="bi" [ngClass]="officer.isActive ? 'bi-check-circle-fill' : 'bi-pause-circle-fill'"></i>
+              {{ officer.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <!-- Card Body -->
+          <div class="officer-card-body">
+            <h6 class="officer-name">{{ officer.user.username }}</h6>
+            <p class="officer-designation">{{ officer.designation }}</p>
+            
+            <div class="officer-details">
+              <div class="detail-item-compact">
+                <i class="bi bi-geo-alt text-primary"></i>
+                <span>{{ officer.city }}</span>
+              </div>
+              <div class="detail-item-compact">
+                <i class="bi bi-briefcase text-info"></i>
+                <span>{{ officer.specialization }}</span>
+              </div>
+            </div>
+
+            <!-- Workload Progress -->
+            <div class="workload-compact">
+              <div class="workload-header-compact">
+                <small>Workload</small>
+                <small class="fw-bold">{{ getWorkloadPercentage(officer) }}%</small>
+              </div>
+              <div class="progress progress-thin-compact">
+                <div 
+                  class="progress-bar"
+                  [ngClass]="'bg-' + getWorkloadColor(officer)"
+                  [style.width.%]="getWorkloadPercentage(officer)">
+                </div>
+              </div>
+              <small class="text-muted">{{ officer.currentWorkload }}/{{ officer.maxLoansAssigned }} loans</small>
+            </div>
+
+            <!-- Performance -->
+            @if (officer.performanceRating) {
+              <div class="performance-compact">
+                <i class="bi bi-star-fill text-warning"></i>
+                <span>Rating: {{ officer.performanceRating }}/5</span>
+              </div>
+            }
+          </div>
+
+          <!-- Card Actions -->
+          <div class="officer-card-actions">
+            <a class="btn-action-compact btn-primary-compact" [routerLink]="[officer.officerId,'edit']">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button class="btn-action-compact btn-danger-compact" (click)="confirmDelete(officer.officerId)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- List View -->
+  @else {
+    <div class="table-responsive mb-4">
+      <table class="table table-hover officer-table">
+        <thead>
           <tr>
-            <th>Username</th><th>Designation</th><th>City</th><th>Specialization</th><th>Workload</th><th>Performance</th><th>Status</th><th>Actions</th>
+            <th class="select-col">
+              <input 
+                type="checkbox" 
+                class="form-check-input"
+                [(ngModel)]="selectAll"
+                (change)="toggleSelectAll()"
+              />
+            </th>
+            <th>Officer</th>
+            <th>Designation</th>
+            <th>City</th>
+            <th>Specialization</th>
+            <th>Workload</th>
+            <th>Performance</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let officer of paginatedOfficers; trackBy: trackByOfficerId">
-            <td><strong>{{ officer.user.username }}</strong></td>
-            <td>{{ officer.designation }}</td>
-            <td>{{ officer.city }}</td>
-            <td>{{ officer.specialization }}</td>
-            <td>{{ officer.currentWorkload }}/{{ officer.maxLoansAssigned }}</td>
-            <td>{{ officer.performanceRating ?? 'N/A' }}</td>
-            <td><span class="badge" [ngClass]="officer.isActive ? 'bg-success' : 'bg-secondary'">{{ officer.isActive ? 'Active' : 'Inactive' }}</span></td>
-            <td>
-              <a class="btn btn-sm btn-outline-primary me-2" [routerLink]="[officer.officerId,'edit']"><i class="bi bi-pencil-square"></i></a>
-              <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(officer.officerId)"><i class="bi bi-trash"></i></button>
-            </td>
-          </tr>
+          @for (officer of paginatedOfficers; track officer.officerId) {
+            <tr [class.row-selected]="isSelected(officer.officerId)">
+              <td class="select-col">
+                <input 
+                  type="checkbox" 
+                  class="form-check-input"
+                  [checked]="isSelected(officer.officerId)"
+                  (change)="toggleSelect(officer.officerId)"
+                />
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="table-avatar">
+                    <i class="bi bi-person-circle"></i>
+                  </div>
+                  <strong>{{ officer.user.username }}</strong>
+                </div>
+              </td>
+              <td>{{ officer.designation }}</td>
+              <td>{{ officer.city }}</td>
+              <td>{{ officer.specialization }}</td>
+              <td>
+                <div class="workload-cell">
+                  <div class="progress progress-table">
+                    <div 
+                      class="progress-bar"
+                      [ngClass]="'bg-' + getWorkloadColor(officer)"
+                      [style.width.%]="getWorkloadPercentage(officer)">
+                    </div>
+                  </div>
+                  <small>{{ officer.currentWorkload}}/{{ officer.maxLoansAssigned }}</small>
+                </div>
+              </td>
+              <td>
+                @if (officer.performanceRating) {
+                  <span class="performance-badge">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    {{ officer.performanceRating }}/5
+                  </span>
+                } @else {
+                  <span class="text-muted">N/A</span>
+                }
+              </td>
+              <td>
+                <span class="status-badge-table" [ngClass]="officer.isActive ? 'badge-success' : 'badge-secondary'">
+                  {{ officer.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-table">
+                  <a class="btn btn-sm btn-outline-primary" [routerLink]="[officer.officerId,'edit']">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button class="btn btn-sm btn-outline-danger" (click)="confirmDelete(officer.officerId)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
-    }
+  }
 
-    <!-- Pagination -->
-    <nav class="mt-4">
-      <ul class="pagination justify-content-center gap-2">
-        <li class="page-item" [class.disabled]="currentPage===1">
-          <button class="page-link rounded-pill" (click)="changePage(currentPage-1)"><i class="bi bi-chevron-left"></i></button>
-        </li>
-        <li class="page-item" *ngFor="let page of [].constructor(totalPages); let i=index" [class.active]="currentPage===i+1">
-          <button class="page-link rounded-pill fw-bold" (click)="changePage(i+1)">{{ i+1 }}</button>
-        </li>
-        <li class="page-item" [class.disabled]="currentPage===totalPages">
-          <button class="page-link rounded-pill" (click)="changePage(currentPage+1)"><i class="bi bi-chevron-right"></i></button>
-        </li>
-      </ul>
-    </nav>
-  </div>
+  <!-- Pagination -->
+  @if (totalPages > 1 && !isLoading && filteredOfficers.length > 0) {
+    <div class="pagination-wrapper">
+      <nav aria-label="Officer pagination">
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <button class="page-link" (click)="previousPage()" [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
+          
+          @for (page of getPageNumbers(); track page) {
+            @if (page === -1) {
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            } @else {
+              <li class="page-item" [class.active]="currentPage === page">
+                <button class="page-link" (click)="changePage(page)">
+                  {{ page }}
+                </button>
+              </li>
+            }
+          }
+          
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <button class="page-link" (click)="nextPage()" [disabled]="currentPage === totalPages">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="pagination-info text-center mt-2">
+        <small class="text-muted">
+          Page {{ currentPage }} of {{ totalPages }} 
+          ({{ (currentPage - 1) * itemsPerPage + 1 }} - 
+          {{ Math.min(currentPage * itemsPerPage, filteredOfficers.length) }} of {{ filteredOfficers.length }})
+        </small>
+      </div>
+    </div>
+  }
 </div>
 
-
-<!-- 🔹 Custom Confirmation Modal -->
+<!-- Confirmation Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      <div class="modal-body text-center">
-        <p class="mb-3">{{ confirmMessage }}</p>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-body text-center p-4">
+        <div class="confirm-icon mb-3">
+          <i class="bi bi-question-circle text-warning"></i>
+        </div>
+        <h5 class="mb-3">Confirm Action</h5>
+        <p class="text-muted mb-4">{{ confirmMessage }}</p>
         <div class="d-flex justify-content-center gap-2">
-          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-danger btn-sm" (click)="confirmAction()">Yes</button>
+          <button class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger px-4" (click)="confirmAction()">Delete</button>
         </div>
       </div>
     </div>

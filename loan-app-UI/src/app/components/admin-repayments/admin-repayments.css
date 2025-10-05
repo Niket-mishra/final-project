@@ -1,5 +1,5 @@
-.assigned-apps-container {
-  max-width: 1400px;
+.repayments-container {
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -101,37 +101,99 @@
   border-top: 1px solid #e9ecef;
 }
 
-/* Applications Grid */
-.applications-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.25rem;
-}
-
-.application-card-officer {
+/* Table */
+.table-responsive {
   background: white;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border: 2px solid #e9ecef;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
 }
 
-.application-card-officer:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+.repayment-table {
+  margin-bottom: 0;
 }
 
-/* Card Header */
-.app-card-header {
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-bottom: 1px solid #dee2e6;
-  display: flex;
-  justify-content: space-between;
+.repayment-table thead {
+  background: linear-gradient(135deg, #198754 0%, #157347 100%);
+  color: white;
+}
+
+.repayment-table thead th {
+  border: none;
+  padding: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.repayment-table tbody tr {
+  transition: all 0.2s;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.repayment-table tbody tr:hover {
+  background: #f8fff8;
+}
+
+.repayment-table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.row-selected {
+  background: #e7f5ff;
+}
+
+.overdue-row {
+  background: #fff5f5;
+}
+
+.select-col {
+  width: 50px;
+  text-align: center;
+}
+
+/* Badges */
+.loan-badge {
+  display: inline-flex;
   align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  background: #e7f1ff;
+  color: #0d6efd;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.transaction-id {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #495057;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.emi-badge {
+  padding: 0.25rem 0.65rem;
+  background: #f0f0f0;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.payment-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  background: #e9ecef;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .status-badge {
@@ -149,125 +211,23 @@
   color: white;
 }
 
-.badge-danger {
-  background: #dc3545;
-  color: white;
-}
-
 .badge-warning {
   background: #ffc107;
   color: #000;
 }
 
-.badge-primary {
-  background: #0d6efd;
+.badge-danger {
+  background: #dc3545;
   color: white;
 }
 
-/* Card Body */
-.app-card-body {
-  padding: 1.25rem;
-  flex: 1;
-}
-
-.customer-section {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.customer-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-}
-
-.customer-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.customer-name {
+.penalty-badge {
+  padding: 0.25rem 0.65rem;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 600;
-  font-size: 1rem;
-  color: #1a1a1a;
-  margin-bottom: 0.25rem;
-}
-
-.amount-section {
-  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-  padding: 1rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.amount-label {
-  font-size: 0.75rem;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.amount-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.detail-row i {
-  font-size: 1rem;
-}
-
-.detail-text {
-  flex: 1;
-  font-size: 0.9rem;
-  color: #495057;
-}
-
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Card Actions */
-.app-card-actions {
-  padding: 0.75rem 1.25rem;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.app-card-actions .btn {
-  flex: 1;
 }
 
 /* Pagination */
@@ -291,14 +251,14 @@
 }
 
 .page-link:hover {
-  background: #667eea;
+  background: #198754;
   color: white;
-  border-color: #667eea;
+  border-color: #198754;
 }
 
 .page-item.active .page-link {
-  background: #667eea;
-  border-color: #667eea;
+  background: #198754;
+  border-color: #198754;
   font-weight: 600;
 }
 
@@ -327,10 +287,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .applications-grid {
-    grid-template-columns: 1fr;
-  }
-
   .summary-card {
     padding: 1rem;
   }
@@ -343,6 +299,15 @@
 
   .summary-value {
     font-size: 1.25rem;
+  }
+
+  .repayment-table {
+    font-size: 0.875rem;
+  }
+
+  .repayment-table thead th,
+  .repayment-table tbody td {
+    padding: 0.75rem 0.5rem;
   }
 }
 
@@ -358,7 +323,7 @@
   }
 }
 
-.application-card-officer {
+.repayment-table tbody tr {
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -374,10 +339,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #667eea;
+  background: #198754;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5568d3;
+  background: #157347;
 }

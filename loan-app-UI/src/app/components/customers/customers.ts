@@ -1,4 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// ============================================
+// customers.ts (Keep your existing imports and class structure)
+// ============================================
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CustomerService } from '../../services/customer-service';
@@ -17,6 +20,7 @@ import { CustomerDetails } from '../customer-details/customer-details';
 export class Customers implements OnInit, OnDestroy {
   customers: Customer[] = [];
   filteredCustomers: Customer[] = [];
+  paginatedCustomers: Customer[] = [];
   selectedCustomer: Customer | null = null;
   isLoading = true;
   error = '';
@@ -27,12 +31,22 @@ export class Customers implements OnInit, OnDestroy {
   cityFilter = '';
   sortBy = 'name';
 
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 12;
+  totalPages = 0;
+
+  // Bulk Selection
+  selectedCustomers: Set<number> = new Set();
+  selectAll = false;
+
   // View mode
   showProfileModal = false;
 
   private destroy$ = new Subject<void>();
-
-  constructor(private service: CustomerService) {}
+  private service = inject(CustomerService);
+  private cdr = inject(ChangeDetectorRef);
+  Math = Math;
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -54,6 +68,7 @@ export class Customers implements OnInit, OnDestroy {
         next: (data) => {
           this.customers = data;
           this.filterCustomers();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.error = 'Failed to load customers.';
@@ -88,6 +103,8 @@ export class Customers implements OnInit, OnDestroy {
 
     this.filteredCustomers = filtered;
     this.sortCustomers();
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
   sortCustomers(): void {
@@ -113,6 +130,14 @@ export class Customers implements OnInit, OnDestroy {
         );
         break;
     }
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    this.totalPages = Math.ceil(this.filteredCustomers.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedCustomers = this.filteredCustomers.slice(startIndex, endIndex);
   }
 
   clearFilters(): void {
@@ -121,6 +146,74 @@ export class Customers implements OnInit, OnDestroy {
     this.cityFilter = '';
     this.sortBy = 'name';
     this.filterCustomers();
+  }
+
+  // Pagination
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  nextPage(): void {
+    this.goToPage(this.currentPage + 1);
+  }
+
+  previousPage(): void {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (this.currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(this.totalPages);
+      } else if (this.currentPage >= this.totalPages - 2) {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = this.totalPages - 3; i <= this.totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push(-1);
+        for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++) pages.push(i);
+        pages.push(-1);
+        pages.push(this.totalPages);
+      }
+    }
+    
+    return pages;
+  }
+
+  // Bulk Selection
+  toggleSelectAll(): void {
+    this.selectAll = !this.selectAll;
+    if (this.selectAll) {
+      this.paginatedCustomers.forEach(c => this.selectedCustomers.add(c.customerId));
+    } else {
+      this.selectedCustomers.clear();
+    }
+  }
+
+  toggleSelect(id: number): void {
+    if (this.selectedCustomers.has(id)) {
+      this.selectedCustomers.delete(id);
+    } else {
+      this.selectedCustomers.add(id);
+    }
+    this.selectAll = this.selectedCustomers.size === this.paginatedCustomers.length;
+  }
+
+  isSelected(id: number): boolean {
+    return this.selectedCustomers.has(id);
   }
 
   viewProfile(customer: Customer): void {
@@ -150,7 +243,6 @@ export class Customers implements OnInit, OnDestroy {
   }
 
   getStatusText(status: any): string {
-    // Cast status to VerificationStatus if it's a string representation of the enum
     if (typeof status === 'number' || typeof status === 'string') {
       switch (status) {
         case VerificationStatus.Verified:
@@ -194,6 +286,37 @@ export class Customers implements OnInit, OnDestroy {
   getUniqueCities(): string[] {
     const cities = this.customers.map(c => c.city).filter(Boolean);
     return Array.from(new Set(cities)) as string[];
+  }
+
+  exportToCSV(): void {
+    const data = this.filteredCustomers.map(c => ({
+      'Customer ID': c.customerId,
+      'Name': `${c.firstName} ${c.lastName}`,
+      'Email': c.user?.email,
+      'Phone': c.user?.phoneNumber,
+      'City': c.city,
+      'Occupation': c.occupation,
+      'Annual Income': c.annualIncome,
+      'Credit Score': c.creditScore,
+      'Status': this.getStatusText(c.verificationStatus)
+    }));
+
+    const csv = this.convertToCSV(data);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `customers-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  private convertToCSV(data: any[]): string {
+    const headers = Object.keys(data[0]).join(',');
+    const rows = data.map(row => 
+      Object.values(row).map(val => `"${val}"`).join(',')
+    );
+    return [headers, ...rows].join('\n');
   }
 }
 

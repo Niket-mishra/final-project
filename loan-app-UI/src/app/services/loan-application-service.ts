@@ -31,9 +31,12 @@ export class LoanApplicationService {
   }
 
   // 🔄 Update application status
-  updateStatus(id: number, status: ApplicationStatus, remarks?: string): Observable<LoanApplication> {
-    return this.http.patch<LoanApplication>(`${this.apiUrl}/${id}/status`, { status, remarks });
-  }
+  updateStatus(id: number, status: ApplicationStatus, remarks: string = ''): Observable<LoanApplication> {
+  const url = `${this.apiUrl}/${id}/status?newStatus=${status}`;
+  return this.http.patch<LoanApplication>(url, JSON.stringify(remarks), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
 
   // 👤 Assign loan officer
   assignOfficer(id: number, officerId: number): Observable<LoanApplication> {

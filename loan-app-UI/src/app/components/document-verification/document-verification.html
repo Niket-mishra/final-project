@@ -195,8 +195,8 @@
                 <span class="detail-label">
                   <i class="bi bi-hourglass-split"></i> Waiting Time
                 </span>
-                <span class="detail-value" [class.urgent]="isUrgent(doc.uploadedAt.toISOString())">
-                  {{ getWaitingTime(doc.uploadedAt.toISOString()) }}
+                <span class="detail-value" [class.urgent]="isUrgent(doc.uploadedAt)">
+                  {{ getWaitingTime(doc.uploadedAt) }}
                 </span>
               </div>
             </div>

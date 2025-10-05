@@ -52,7 +52,9 @@ export const routes: Routes = [
       { path: 'repayment-history', loadComponent: () => import('./components/repayments/repayments').then(m => m.Repayments) },
       { path: 'make-payment', loadComponent: () => import('./components/make-payment/make-payment').then(m => m.MakePayment) },
       { path: 'customer-queries', loadComponent: () => import('./components/customer-queries/customer-queries').then(m => m.CustomerQueries) },
-      { path: 'officer-summary', loadComponent: () => import('./components/officer-summary/officer-summary').then(m=> m.OfficerSummary)}
+      { path: 'officer-summary', loadComponent: () => import('./components/officer-summary/officer-summary').then(m=> m.OfficerSummary)},
+      { path: 'repayments-list', loadComponent:() => import('./components/admin-repayments/admin-repayments').then(m=>m.AdminRepayments)},
+    
     ]
   },
 
@@ -83,7 +85,8 @@ export const routes: Routes = [
       { path: 'generate-report', loadComponent: () => import('./components/report-generation/report-generation').then(m => m.ReportGeneration) },
       { path: 'scheme-details/:id', loadComponent: () => import('./components/loan-scheme-details/loan-scheme-details').then(m => m.LoanSchemeDetails) },
       { path: 'settings', loadComponent: () => import('./components/officer-settings/officer-settings').then(m => m.OfficerSettings) },
-      { path: 'loan-applications', loadComponent: () => import('./components/loan-application/loan-application').then(m => m.LoanApplications) }
+      { path: 'loan-applications', loadComponent: () => import('./components/loan-application/loan-application').then(m => m.LoanApplications) },
+      { path: 'loan-applications/:id', loadComponent: () => import('./components/application-details/application-details').then(m => m.ApplicationDetails) },
     ]
   },
 
@@ -100,6 +103,7 @@ export const routes: Routes = [
       { path: 'upload-documents', loadComponent: () => import('./components/multi-document-upload-component/multi-document-upload-component').then(m => m.MultiDocumentUploadComponent) },
       { path: 'my-loans', loadComponent: () => import('./components/customer-loans/customer-loans').then(m => m.CustomerLoans) },
       { path: 'applications', loadComponent: () => import('./components/customer-applications/customer-applications').then(m => m.CustomerApplications) },
+      { path: 'applications/details', loadComponent: () => import('./components/customer-applications-details/customer-applications-details').then(m => m.CustomerApplicationsDetails)},
       { path: 'documents', loadComponent: () => import('./components/customer-documents/customer-documents').then(m => m.CustomerDocuments) },
       { path: 'queries/create', loadComponent: () => import('./components/customer-query-form/customer-query-form').then(m => m.CustomerQueryForm) },
       { path: 'queries/list', loadComponent: () => import('./components/customer-queries-list/customer-queries-list').then(m => m.CustomerQueriesList) },

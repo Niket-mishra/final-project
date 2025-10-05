@@ -24,7 +24,7 @@
               <div class="card shadow-sm border-0 h-100">
                 <div class="card-body">
                   <h6 class="fw-bold">Application #{{ app.applicationId }}</h6>
-                  <p><strong>Customer:</strong> {{ app.customer?.firstName }} {{ app.customer?.lastName }}</p>
+                  <p><strong>Customer:</strong> {{ app.customer.firstName }} {{ app.customer.lastName }}</p>
                   <p><strong>Loan Type:</strong> {{ app.loanScheme?.schemeName || '—' }}</p>
                   <p><strong>Amount:</strong> ₹{{ app.requestedAmount }}</p>
                   <p><strong>Purpose:</strong> {{ app.purposeOfLoan }}</p>

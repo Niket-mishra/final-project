@@ -129,7 +129,8 @@ export class OfficerService {
   }
 
   // 📊 Officer performance
-  getOfficerPerformance(officerId: number): Observable<PerformanceMetrics> {
-    return this.http.get<PerformanceMetrics>(`${this.apiUrl}/${officerId}/performance`);
-  }
+  updateOfficerPerformance(officerId: number, rating: number): Observable<LoanOfficer> {
+  const url = `${this.apiUrl}/officers/${officerId}/performance`;
+  return this.http.patch<LoanOfficer>(url, { rating });
+}
 }
